@@ -1,7 +1,7 @@
 import streamlit as st
 
 st.title("RAG app")
-st.write("Welcome in the conversation with chatbot, that will tell you about tech meetups in Poland!")
+st.write("Welcome to the conversation with chatbot, that will tell you about tech meetups in Poland!")
 
 LOREM_IPSUM = """
 Lorem ipsum dolor sit amet, **consectetur adipiscing** elit, sed do eiusmod tempor
