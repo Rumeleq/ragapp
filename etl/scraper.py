@@ -64,33 +64,33 @@ async def scrape_crossweb_event(relative_url: str):
 
         # Extracting event type
         event_type_label = event_soup.find("div", class_="event-label", string="Typ wydarzenia:")
-        event_details["event_type"] = event_type_label.find_next_sibling(
-            "div").text.strip() if event_type_label else "N/A"
+        event_details["event_type"] = event_type_label.find_next_sibling("div").text.strip() if event_type_label else "N/A"
 
         # Extracting event category
         event_category_label = event_soup.find("div", class_="event-label", string="Kategoria:")
-        event_details["event_category"] = event_category_label.find_next_sibling(
-            "div").text.strip() if event_category_label else "N/A"
+        event_details["event_category"] = (
+            event_category_label.find_next_sibling("div").text.strip() if event_category_label else "N/A"
+        )
 
         # Extracting event subject
         event_subject_label = event_soup.find("div", class_="event-label", string="Tematyka:")
-        event_details["event_subject"] = event_subject_label.find_next_sibling(
-            "div").text.strip() if event_subject_label else "N/A"
+        event_details["event_subject"] = (
+            event_subject_label.find_next_sibling("div").text.strip() if event_subject_label else "N/A"
+        )
 
         # Extracting event date
         event_date_label = event_soup.find("div", class_="event-label", string="Data:")
-        event_details["event_date"] = event_date_label.find_next_sibling(
-            "div").text.strip() if event_date_label else "N/A"
+        event_details["event_date"] = event_date_label.find_next_sibling("div").text.strip() if event_date_label else "N/A"
 
         # Extracting event time
         event_time_label = event_soup.find("div", class_="event-label", string="Godzina:")
-        event_details["event_time"] = event_time_label.find_next_sibling(
-            "div").text.strip() if event_time_label else "N/A"
+        event_details["event_time"] = event_time_label.find_next_sibling("div").text.strip() if event_time_label else "N/A"
 
         # Extracting event language
         event_language_label = event_soup.find("div", class_="event-label", string="Język:")
-        event_details["event_language"] = event_language_label.find_next_sibling(
-            "div").text.strip() if event_language_label else "N/A"
+        event_details["event_language"] = (
+            event_language_label.find_next_sibling("div").text.strip() if event_language_label else "N/A"
+        )
 
         # Extracting event fee
         event_fee_label = event_soup.find("div", class_="event-label", string="Wstęp:")
@@ -98,22 +98,25 @@ async def scrape_crossweb_event(relative_url: str):
 
         # Extracting event city
         event_city_label = event_soup.find("div", class_="event-label", string="Miasto:")
-        event_details["event_city"] = event_city_label.find_next_sibling(
-            "div").text.strip() if event_city_label else "N/A"
+        event_details["event_city"] = event_city_label.find_next_sibling("div").text.strip() if event_city_label else "N/A"
 
         # Extracting event location
         event_location_label = event_soup.find("div", class_="event-label", string="Miejsce:")
-        event_details["event_location"] = event_location_label.find_next_sibling(
-            "div").text.strip() if event_location_label else "N/A"
+        event_details["event_location"] = (
+            event_location_label.find_next_sibling("div").text.strip() if event_location_label else "N/A"
+        )
 
         # Extracting event location address
         event_location_address_label = event_soup.find("div", class_="event-label", string="Adres:")
-        event_details["event_location_address"] = event_location_address_label.find_next_sibling(
-            "div").text.strip() if event_location_address_label else "N/A"
+        event_details["event_location_address"] = (
+            event_location_address_label.find_next_sibling("div").text.strip() if event_location_address_label else "N/A"
+        )
 
         # Extracting event registration link
         event_registration_link = event_soup.find("a", class_="eventDetailLink.apply-link-js")
-        event_details["event_registration_link"] = event_registration_link["href"].strip() if event_registration_link else "N/A"
+        event_details["event_registration_link"] = (
+            event_registration_link["href"].strip() if event_registration_link else "N/A"
+        )
 
         # Extracting event webpage
         event_webpage = event_soup.find("a", class_="eventDetailLink.apply-link-js", target="_blank")
@@ -121,7 +124,9 @@ async def scrape_crossweb_event(relative_url: str):
 
         # Extracting event speakers
         event_speakers: List[Tag] = event_soup.find_all("div", class_="speaker-box")
-        event_details["event_speakers"] = [speaker.div.a["href"].strip() for speaker in event_speakers] if event_speakers else "N/A"
+        event_details["event_speakers"] = (
+            [speaker.div.a["href"].strip() for speaker in event_speakers] if event_speakers else "N/A"
+        )
 
         # Extracting event agenda
         # If there are two divs with this class, the first one contains the agenda;
