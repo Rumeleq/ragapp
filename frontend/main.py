@@ -11,10 +11,17 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
 """
 
 
+def chunk_response(response: str):
+    for word in response.split():
+        yield word
+
+
 def display_conversation():
-    for user_prompt, bot_response in zip(user_prompts, bot_responses):
+    for user_prompt, bot_response in zip(user_prompts[:-1], bot_responses[:-1]):
         st.chat_message("user").write(user_prompt)
         st.chat_message("assistant").write(bot_response)
+    st.chat_message("user").write(user_prompts[-1])
+    st.chat_message("assistant").write_stream(chunk_response(bot_responses[-1]))
 
 
 user_prompt = st.chat_input("Ask a question about tech meetups in Poland")
