@@ -22,4 +22,7 @@ def display_conversation():
 
 
 display_conversation()
-user_prompt = st.text_input("You: ", "")
+user_prompt = st.chat_input("Ask a question about tech meetups in Poland")
+if user_prompt:
+    user_prompts.append(user_prompt)
+    bot_responses.append(LOREM_IPSUM)
