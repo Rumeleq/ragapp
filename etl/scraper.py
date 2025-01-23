@@ -4,6 +4,7 @@ import shutil
 from datetime import datetime, timedelta
 from typing import List
 
+import backoff
 import requests
 from aiohttp import ClientSession
 from bs4 import BeautifulSoup
@@ -20,13 +21,57 @@ async def scrape_brite_events(url: str):
     pass
 
 
-async def scrape_crossweb_articles_events(url: str):
+async def scrape_crossweb_events(url: str):
     with requests.get(url) as response:
         response.raise_for_status()
         response_text = response.text
         event_list_soup = BeautifulSoup(response_text, "html.parser")
-    event_anchors: List[str] = event_list_soup.find_all("a", class_="clearfix")
-    print(f"Found {len(event_anchors)} events on Crossweb")
+    event_urls: List[str] = [
+        anchor["href"] for anchor in event_list_soup.find_all("a", class_="clearfix")
+    ]
+    print(f"Found {len(event_urls)} events on Crossweb")
+
+    tasks = []
+    for event_url in event_urls:
+        tasks.append(asyncio.create_task(scrape_crossweb_event(event_url)))
+
+    await asyncio.gather(*tasks)
+
+
+@backoff.on_exception(backoff.expo, Exception, max_tries=3)
+async def scrape_crossweb_event(relative_url: str):
+    base_url = "https://crossweb.pl"
+    url = base_url + relative_url
+    print(f"Scraping event: {url}")
+
+    async with ClientSession() as session:
+        async with session.get(url) as response:
+            response.raise_for_status()
+            response_text = await response.read()
+
+    try:
+        response_text = response_text.decode("utf-8")
+    except UnicodeDecodeError:
+        response_text = response_text.decode("ISO-8859-1")
+
+    event_soup = BeautifulSoup(response_text, "html.parser")
+
+    event_title = event_soup.find("h1", class_="h1-detail").text
+    event_type = event_soup.find("div", class_="type").text
+    event_category = event_soup.find("div", class_="category").text
+    event_subject = event_soup.find("div", class_="subject").text
+    event_date = event_soup.find("div", class_="date").text
+    event_time = event_soup.find("div", class_="time").text
+    event_language = event_soup.find("div", class_="language").text
+    event_fee = event_soup.find("div", class_="fee").text
+    event_city = event_soup.find("div", class_="city").text
+    event_location = event_soup.find("div", class_="place").text
+    event_location_address = event_soup.find("div", class_="address").text
+    event_registration_link = event_soup.find("a", class_="btn btn-primary")["href"]
+    event_webpage = event_soup.find("a", class_="btn btn-secondary")["href"]
+    event_speakers: List[str] = event_soup.findall("div", class_="speakers").text
+    event_agenda = event_soup.find("div", class_="agenda").text
+    event_description = event_soup.find("div", class_="description").text
 
 
 async def main():
@@ -37,7 +82,7 @@ async def main():
         elif "eventbrite" in url:
             tasks.append(asyncio.create_task(scrape_brite_events(url)))
         elif "crossweb" in url:
-            tasks.append(asyncio.create_task(scrape_crossweb_articles_events(url)))
+            tasks.append(asyncio.create_task(scrape_crossweb_events(url)))
 
     print("Scraping started")
     await asyncio.gather(*tasks)
