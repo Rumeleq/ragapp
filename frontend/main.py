@@ -15,10 +15,8 @@ bot_responses: list[str] = ["bbb", LOREM_IPSUM]
 
 def display_conversation():
     for user_prompt, bot_response in zip(user_prompts, bot_responses):
-        st.header("You:")
-        st.write(user_prompt)
-        st.header("Bot:")
-        st.write(bot_response)
+        st.chat_message("user").write(user_prompt)
+        st.chat_message("assistant").write(bot_response)
 
 
 display_conversation()
@@ -26,3 +24,4 @@ user_prompt = st.chat_input("Ask a question about tech meetups in Poland")
 if user_prompt:
     user_prompts.append(user_prompt)
     bot_responses.append(LOREM_IPSUM)
+    display_conversation()
