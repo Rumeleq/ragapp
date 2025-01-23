@@ -26,9 +26,7 @@ async def scrape_crossweb_events(url: str):
         response.raise_for_status()
         response_text = response.text
         event_list_soup = BeautifulSoup(response_text, "html.parser")
-    event_urls: List[str] = [
-        anchor["href"] for anchor in event_list_soup.find_all("a", class_="clearfix")
-    ]
+    event_urls: List[str] = [anchor["href"] for anchor in event_list_soup.find_all("a", class_="clearfix")]
     print(f"Found {len(event_urls)} events on Crossweb")
 
     tasks = []
