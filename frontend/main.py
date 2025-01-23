@@ -3,10 +3,10 @@ import time
 import streamlit as st
 from helper import bot_responses, user_prompts
 
+st.set_page_config(page_title="Chat about polish tech events!", page_icon=":robot:")
+
 st.title("RAG app")
 st.write("Welcome to the conversation with chatbot, that will tell you about tech meetups in Poland!")
-
-st.set_page_config(page_title="Chat about polish tech events!", page_icon=":robot:")
 
 LOREM_IPSUM = """
 Lorem ipsum dolor sit amet, **consectetur adipiscing** elit, sed do eiusmod tempor
