@@ -30,7 +30,7 @@ async def analize_data():
 async def generate_response():
     await asyncio.sleep(1)
     print("generating response...")
-    return "".join([str(random.randint(1, 9)) for i in range(10)])
+    return "".join([str(random.choice(LOREM_IPSUM.split())) + " " for i in range(10)])
 
 
 def stream_response(response: str):
