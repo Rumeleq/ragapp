@@ -9,8 +9,8 @@ incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
 nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
 """
 
-user_prompts: list[str] = [LOREM_IPSUM, "aaa"]
-bot_responses: list[str] = ["bbb", LOREM_IPSUM]
+user_prompts: list[str] = []
+bot_responses: list[str] = []
 
 
 def display_conversation():
@@ -19,7 +19,6 @@ def display_conversation():
         st.chat_message("assistant").write(bot_response)
 
 
-display_conversation()
 user_prompt = st.chat_input("Ask a question about tech meetups in Poland")
 if user_prompt:
     user_prompts.append(user_prompt)
