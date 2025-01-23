@@ -1,1 +1,2 @@
-import streamlit as st
+user_prompts: list[str] = []
+bot_responses: list[str] = []

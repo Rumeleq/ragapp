@@ -1,4 +1,5 @@
 import streamlit as st
+from helper import bot_responses, user_prompts
 
 st.title("RAG app")
 st.write("Welcome to the conversation with chatbot, that will tell you about tech meetups in Poland!")
@@ -8,9 +9,6 @@ Lorem ipsum dolor sit amet, **consectetur adipiscing** elit, sed do eiusmod temp
 incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
 nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
 """
-
-user_prompts: list[str] = []
-bot_responses: list[str] = []
 
 
 def display_conversation():
