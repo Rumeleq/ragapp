@@ -1,3 +1,5 @@
+import asyncio
+import random
 import time
 
 import streamlit as st
@@ -15,6 +17,22 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
 """
 
 
+async def search_for_events():
+    await asyncio.sleep(2)
+    print("searching for events...")
+
+
+async def analyze_data():
+    await asyncio.sleep(1)
+    print("analyzing data...")
+
+
+async def generate_response():
+    await asyncio.sleep(1)
+    print("generating response...")
+    return "".join([str(random.choice(LOREM_IPSUM.split())) + " " for i in range(10)])
+
+
 def stream_response(response: str):
     for word in response.split():
         yield word + " "
@@ -22,28 +40,25 @@ def stream_response(response: str):
 
 
 def display_conversation():
-    for user_prompt, bot_response in zip(user_prompts[:-1], bot_responses[:-1]):
+    for user_prompt, bot_response in zip(user_prompts, bot_responses):
         st.chat_message("user").write(user_prompt)
         st.chat_message("assistant").write(bot_response)
-    st.chat_message("user").write(user_prompts[-1])
+
+
+async def display_response():
     with st.chat_message("assistant"):
-        empty_space = st.empty()
-        with empty_space.container():
-            with st.status("Generating response...", expanded=True) as status:
-                st.write("Searching for events...")
-                time.sleep(2)
-                st.write("Analyzing data...")
-                time.sleep(1)
-                st.write("Constructing final message...")
-                time.sleep(1)
-                status.update(label="Complete!", state="complete", expanded=False)
-                time.sleep(1)
-        empty_space.empty()
-        st.write_stream(stream_response(bot_responses[-1]))
+        with st.spinner("Thinking... "):
+            await search_for_events()
+            await analyze_data()
+        response = await generate_response()
+        st.write_stream(stream_response(response))
+        bot_responses.append(response)
 
 
 user_prompt = st.chat_input("Ask a question about tech meetups in Poland")
 if user_prompt:
-    user_prompts.append(user_prompt)
-    bot_responses.append(LOREM_IPSUM)
     display_conversation()
+    st.chat_message("user").write(user_prompt)
+    asyncio.run(display_response())
+    user_prompts.append(user_prompt)
+    print({"user_prompts": user_prompts, "bot_responses": bot_responses})
