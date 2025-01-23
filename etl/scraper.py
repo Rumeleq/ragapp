@@ -51,8 +51,8 @@ async def scrape_crossweb_event(relative_url: str):
     try:
         response_text = response_text.decode("utf-8")
     except UnicodeDecodeError:
-        print(f"Decoding error, trying ISO-8859-2: {url}")
-        response_text = response_text.decode("ISO-8859-2")
+        print(f"Decoding error, trying UTF-16: {url}")
+        response_text = response_text.decode("utf-16")
 
     event_soup: BeautifulSoup = BeautifulSoup(response_text, "html.parser")
     event_details: dict[str] = {}
