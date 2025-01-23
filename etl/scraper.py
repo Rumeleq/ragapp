@@ -148,6 +148,9 @@ async def scrape_crossweb_event(relative_url: str):
             event_description = None
 
         event_details["event_description"] = event_description.text.strip() if event_description else "N/A"
+
+        # Setting source
+        event_details["source"] = url
     except Exception as e:
         print(f"Error while scraping {url}: {e}")
         raise
