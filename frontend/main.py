@@ -22,7 +22,7 @@ async def search_for_events():
     print("searching for events...")
 
 
-async def analize_data():
+async def analyze_data():
     await asyncio.sleep(1)
     print("analyzing data...")
 
@@ -47,18 +47,10 @@ def display_conversation():
 
 async def display_response():
     with st.chat_message("assistant"):
-        empty_space = st.empty()
-        with empty_space.container():
-            with st.status("Generating response...", expanded=True) as status:
-                st.write("Searching for events...")
-                await search_for_events()
-                st.write("Analyzing data...")
-                await analize_data()
-                st.write("Constructing final message...")
-                response = await generate_response()
-                status.update(label="Complete!", state="complete", expanded=False)
-                time.sleep(0.5)
-        empty_space.empty()
+        with st.spinner("Thinking... "):
+            await search_for_events()
+            await analyze_data()
+        response = await generate_response()
         st.write_stream(stream_response(response))
         bot_responses.append(response)
 
