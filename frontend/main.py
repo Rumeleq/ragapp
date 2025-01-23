@@ -1,3 +1,4 @@
+import random
 import time
 
 import streamlit as st
@@ -45,5 +46,5 @@ def display_conversation():
 user_prompt = st.chat_input("Ask a question about tech meetups in Poland")
 if user_prompt:
     user_prompts.append(user_prompt)
-    bot_responses.append(LOREM_IPSUM)
+    bot_responses.append("".join([random.randint(1, 9) for i in range(10)]))
     display_conversation()
