@@ -1,7 +1,6 @@
 import asyncio
 import os
 import shutil
-import traceback
 from datetime import datetime, timedelta
 from typing import List
 
@@ -37,7 +36,7 @@ async def scrape_crossweb_events(url: str):
     await asyncio.gather(*tasks)
 
 
-# @backoff.on_exception(backoff.expo, Exception, max_tries=3)
+@backoff.on_exception(backoff.expo, Exception, max_tries=3)
 async def scrape_crossweb_event(relative_url: str):
     base_url = "https://crossweb.pl"
     url = base_url + relative_url
