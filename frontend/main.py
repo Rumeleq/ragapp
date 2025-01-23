@@ -46,5 +46,6 @@ def display_conversation():
 user_prompt = st.chat_input("Ask a question about tech meetups in Poland")
 if user_prompt:
     user_prompts.append(user_prompt)
-    bot_responses.append("".join([random.randint(1, 9) for i in range(10)]))
+    bot_responses.append("".join([str(random.randint(1, 9)) for i in range(10)]))
+    print({"user_prompts": user_prompts, "bot_responses": bot_responses})
     display_conversation()
