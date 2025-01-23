@@ -39,11 +39,13 @@ def stream_response(response: str):
         time.sleep(0.02)
 
 
-async def display_conversation():
-    for user_prompt, bot_response in zip(user_prompts[:-1], bot_responses[:-1]):
+def display_conversation():
+    for user_prompt, bot_response in zip(user_prompts, bot_responses):
         st.chat_message("user").write(user_prompt)
         st.chat_message("assistant").write(bot_response)
-    st.chat_message("user").write(user_prompts[-1])
+
+
+async def display_response():
     with st.chat_message("assistant"):
         empty_space = st.empty()
         with empty_space.container():
@@ -56,13 +58,15 @@ async def display_conversation():
                 response = await generate_response()
                 status.update(label="Complete!", state="complete", expanded=False)
                 time.sleep(0.5)
-                bot_responses.append(response)
         empty_space.empty()
-        st.write_stream(stream_response(bot_responses[-1]))
+        st.write_stream(stream_response(response))
+        bot_responses.append(response)
 
 
 user_prompt = st.chat_input("Ask a question about tech meetups in Poland")
 if user_prompt:
+    display_conversation()
+    st.chat_message("user").write(user_prompt)
+    asyncio.run(display_response())
     user_prompts.append(user_prompt)
     print({"user_prompts": user_prompts, "bot_responses": bot_responses})
-    asyncio.run(display_conversation())
