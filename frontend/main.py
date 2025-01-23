@@ -1,3 +1,5 @@
+import time
+
 import streamlit as st
 from helper import bot_responses, user_prompts
 
@@ -11,9 +13,10 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
 """
 
 
-def chunk_response(response: str):
+def stream_response(response: str):
     for word in response.split():
-        yield word
+        yield word + " "
+        time.sleep(0.02)
 
 
 def display_conversation():
@@ -21,7 +24,7 @@ def display_conversation():
         st.chat_message("user").write(user_prompt)
         st.chat_message("assistant").write(bot_response)
     st.chat_message("user").write(user_prompts[-1])
-    st.chat_message("assistant").write_stream(chunk_response(bot_responses[-1]))
+    st.chat_message("assistant").write_stream(stream_response(bot_responses[-1]))
 
 
 user_prompt = st.chat_input("Ask a question about tech meetups in Poland")
