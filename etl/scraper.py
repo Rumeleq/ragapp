@@ -158,7 +158,7 @@ async def scrape_crossweb_event(relative_url: str):
 async def main():
     tasks = []
     for url in URLS:
-        if "nikonferencje" in url:
+        if "unikonferencje" in url:
             tasks.append(asyncio.create_task(scrape_unikon_events(url)))
         elif "eventbrite" in url:
             tasks.append(asyncio.create_task(scrape_brite_events(url)))
