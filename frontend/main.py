@@ -24,7 +24,17 @@ def display_conversation():
         st.chat_message("user").write(user_prompt)
         st.chat_message("assistant").write(bot_response)
     st.chat_message("user").write(user_prompts[-1])
-    st.chat_message("assistant").write_stream(stream_response(bot_responses[-1]))
+    with st.chat_message("assistant"):
+        with st.status("Generating response...", expanded=True) as status:
+            st.write("Searching for events...")
+            time.sleep(2)
+            st.write("Analyzing data...")
+            time.sleep(1)
+            st.write("Constructing final message...")
+            time.sleep(1)
+            status.update(label="Complete!", state="complete", expanded=False)
+            time.sleep(1)
+        st.write_stream(stream_response(bot_responses[-1]))
 
 
 user_prompt = st.chat_input("Ask a question about tech meetups in Poland")
