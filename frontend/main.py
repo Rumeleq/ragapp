@@ -50,7 +50,7 @@ async def display_response():
         with st.spinner("Thinking... "):
             await search_for_events()
             await analyze_data()
-        response = await generate_response()
+            response = await generate_response()
         st.write_stream(stream_response(response))
         bot_responses.append(response)
 
