@@ -1,5 +1,7 @@
 import asyncio
+import json
 import os
+import re
 import shutil
 from datetime import datetime, timedelta
 from typing import List
@@ -47,11 +49,12 @@ async def scrape_crossweb_event(relative_url: str):
             response.raise_for_status()
             response_text = await response.read()
 
-    try:
-        response_text = response_text.decode("utf-8")
-    except UnicodeDecodeError:
-        print(f"Decoding error, trying UTF-16: {url}")
-        response_text = response_text.decode("utf-16")
+    for i, codec in enumerate(CODECS):
+        try:
+            response_text = response_text.decode(codec)
+            break
+        except UnicodeDecodeError:
+            print(f"Decoding error, trying {CODECS[i+1]}: {url}")
 
     event_soup: BeautifulSoup = BeautifulSoup(response_text, "html.parser")
     event_details: dict[str] = {}
@@ -154,7 +157,11 @@ async def scrape_crossweb_event(relative_url: str):
         print(f"Error while scraping {url}: {e}")
         raise
 
-    print(event_details)
+    # Writing the event details to a file
+    event_id = re.sub(r'[<>:"/\\|?*]', "_", event_details["event_title"].replace(" ", "_"))
+
+    with open(f"{OUTPUT_DIR}/{event_id}.json", "w", encoding="utf-16") as f:
+        json.dump(event_details, f, indent=4)
 
 
 async def main():
@@ -173,11 +180,10 @@ async def main():
 
 
 def clear_output_dir():
-    output_dir: str = os.getenv("SCRAPING_OUTPUT_DIR")
-    if os.path.exists(output_dir):
+    if os.path.exists(OUTPUT_DIR):
         print("Removing existing output directory")
-        shutil.rmtree(output_dir)
-    os.makedirs(output_dir)
+        shutil.rmtree(OUTPUT_DIR)
+    os.makedirs(OUTPUT_DIR)
 
 
 if __name__ == "__main__":
@@ -193,8 +199,10 @@ if __name__ == "__main__":
     last_update_timestamp = None  # For testing purposes
 
     if last_update_timestamp is None or datetime.now() - last_update_timestamp > timedelta(hours=12):
+        OUTPUT_DIR = os.getenv("SCRAPING_OUTPUT_DIR")
         clear_output_dir()
         URLS: List[str] = os.getenv("SCRAPING_URLS").split(",")
+        CODECS: List[str] = ["utf-8", "utf-16", "iso-8859-1", "windows-1250", "windows-1252", "iso-8859-2"]
         asyncio.run(main())
 
         # Update the last update timestamp
