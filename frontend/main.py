@@ -3,18 +3,23 @@ import random
 import time
 
 import streamlit as st
-from helper import bot_responses, user_prompts
 
-st.set_page_config(page_title="Chat about polish tech events!", page_icon="💻")
+st.set_page_config(page_title="Chat about Polish tech events!", page_icon="💻")
 
 st.title("RAG app")
-st.write("Welcome to the conversation with chatbot, that will tell you about tech meetups in Poland!")
+st.write("Welcome to the conversation with a chatbot that will tell you about tech meetups in Poland!")
 
 LOREM_IPSUM = """
 Lorem ipsum dolor sit amet, **consectetur adipiscing** elit, sed do eiusmod tempor
 incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
 nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
 """
+
+# Initialize session state for user prompts and bot responses
+if 'user_prompts' not in st.session_state:
+    st.session_state.user_prompts = []
+if 'bot_responses' not in st.session_state:
+    st.session_state.bot_responses = []
 
 
 async def search_for_events():
@@ -40,25 +45,26 @@ def stream_response(response: str):
 
 
 def display_conversation():
-    for user_prompt, bot_response in zip(user_prompts, bot_responses):
+    for user_prompt, bot_response in zip(st.session_state.user_prompts, st.session_state.bot_responses):
         st.chat_message("user").write(user_prompt)
+        st.empty()
         st.chat_message("assistant").write(bot_response)
 
 
-async def display_response():
+async def display_response(user_prompt: str):
     with st.chat_message("assistant"):
         with st.spinner("Thinking... "):
             await search_for_events()
             await analyze_data()
             response = await generate_response()
         st.write_stream(stream_response(response))
-        bot_responses.append(response)
+        st.session_state.bot_responses.append(response)
 
 
 user_prompt = st.chat_input("Ask a question about tech meetups in Poland")
 if user_prompt:
     display_conversation()
     st.chat_message("user").write(user_prompt)
-    asyncio.run(display_response())
-    user_prompts.append(user_prompt)
-    print({"user_prompts": user_prompts, "bot_responses": bot_responses})
+    st.session_state.user_prompts.append(user_prompt)
+    asyncio.run(display_response(user_prompt))
+    print({"user_prompts": st.session_state.user_prompts, "bot_responses": st.session_state.bot_responses})
