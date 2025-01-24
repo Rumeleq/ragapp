@@ -16,9 +16,9 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
 """
 
 # Initialize session state for user prompts and bot responses
-if 'user_prompts' not in st.session_state:
+if "user_prompts" not in st.session_state:
     st.session_state.user_prompts = []
-if 'bot_responses' not in st.session_state:
+if "bot_responses" not in st.session_state:
     st.session_state.bot_responses = []
 
 
