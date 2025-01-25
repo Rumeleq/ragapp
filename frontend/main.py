@@ -4,11 +4,14 @@ import time
 
 import streamlit as st
 
+# Page info and config
 st.set_page_config(page_title="Chat about Polish tech events!", page_icon="💻")
 
+# Elements displayed above the chat
 st.title("RAG app")
 st.write("Welcome to the conversation with a chatbot that will tell you about tech meetups in Poland!")
 
+# Lorem ipsum text for generating random responses
 LOREM_IPSUM = """
 Lorem ipsum dolor sit amet, **consectetur adipiscing** elit, sed do eiusmod tempor
 incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
@@ -48,10 +51,17 @@ async def display_response(user_prompt: str):
         st.session_state.bot_responses.append(response)
 
 
+# Get user input from chat input
 user_prompt = st.chat_input("Ask a question about tech meetups in Poland")
+
+# Check if user input is not empty
 if user_prompt:
+    # Display previous conversation
     display_conversation()
+
+    # Add user prompt to session state
     st.chat_message("user").write(user_prompt)
     st.session_state.user_prompts.append(user_prompt)
+
+    # Run asynchronous function to display response
     asyncio.run(display_response(user_prompt))
-    print({"user_prompts": st.session_state.user_prompts, "bot_responses": st.session_state.bot_responses})
