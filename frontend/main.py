@@ -4,11 +4,14 @@ import time
 
 import streamlit as st
 
+# Page info and config
 st.set_page_config(page_title="Chat about Polish tech events!", page_icon="💻")
 
+# Elements displayed above the chat
 st.title("RAG app")
 st.write("Welcome to the conversation with a chatbot that will tell you about tech meetups in Poland!")
 
+# Lorem ipsum text for generating random responses
 LOREM_IPSUM = """
 Lorem ipsum dolor sit amet, **consectetur adipiscing** elit, sed do eiusmod tempor
 incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
