@@ -48,6 +48,15 @@ async def generate_response():
 
 
 def stream_response(response: str):
+    """
+    Streams the words in the given response string.
+
+    Args:
+        response (str): The response string to be streamed.
+
+    Yields:
+        str: Each word in the response string followed by a space.
+    """
     for word in response.split():
         yield word + " "
         time.sleep(0.02)
