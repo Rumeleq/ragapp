@@ -84,10 +84,15 @@ async def display_response(user_prompt: str):
     """
     with st.chat_message("assistant"):
         with st.spinner("Thinking... "):
+            # Operations performend while the spinner is displayed
             await search_for_events()
             await analyze_data()
             response = await generate_response()
+
+        # Write out the response with a cool typing effect
         st.write_stream(stream_response(response))
+
+        # Add bot response to session state
         st.session_state.bot_responses.append(response)
 
 
