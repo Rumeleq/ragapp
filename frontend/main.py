@@ -22,16 +22,6 @@ if "bot_responses" not in st.session_state:
     st.session_state.bot_responses = []
 
 
-async def search_for_events():
-    await asyncio.sleep(2)
-    print("searching for events...")
-
-
-async def analyze_data():
-    await asyncio.sleep(1)
-    print("analyzing data...")
-
-
 async def generate_response():
     await asyncio.sleep(1)
     print("generating response...")
@@ -54,8 +44,6 @@ def display_conversation():
 async def display_response(user_prompt: str):
     with st.chat_message("assistant"):
         with st.spinner("Thinking... "):
-            await search_for_events()
-            await analyze_data()
             response = await generate_response()
         st.write_stream(stream_response(response))
         st.session_state.bot_responses.append(response)
