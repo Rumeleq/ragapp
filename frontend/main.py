@@ -61,9 +61,17 @@ async def display_response(user_prompt: str):
         st.session_state.bot_responses.append(response)
 
 
+# Get user input from chat input
 user_prompt = st.chat_input("Ask a question about tech meetups in Poland")
+
+# Check if user input is not empty
 if user_prompt:
+    # Display previous conversation
     display_conversation()
+
+    # Add user prompt to session state
     st.chat_message("user").write(user_prompt)
     st.session_state.user_prompts.append(user_prompt)
+
+    # Run asynchronous function to display response
     asyncio.run(display_response(user_prompt))
