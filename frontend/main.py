@@ -76,6 +76,12 @@ def display_conversation():
 
 
 async def display_response(user_prompt: str):
+    """
+    Grabs the user's input and passes it to the chat-bot to generate a response, then the function displays it.
+
+    Args:
+        user_prompt (str): The user's input prompt.
+    """
     with st.chat_message("assistant"):
         with st.spinner("Thinking... "):
             await search_for_events()
