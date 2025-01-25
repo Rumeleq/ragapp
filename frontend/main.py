@@ -26,17 +26,38 @@ if "bot_responses" not in st.session_state:
 
 
 async def generate_response():
+    """
+    Generates a response by randomly selecting words from LOREM_IPSUM.
+
+    Returns:
+        str: The generated response.
+    """
     await asyncio.sleep(1)
     return "".join([str(random.choice(LOREM_IPSUM.split())) + " " for i in range(10)])
 
 
 def stream_response(response: str):
+    """
+    Splits the response string into words and yields each word followed by a space.
+
+    Args:
+        response (str): The response string to be streamed.
+
+    Yields:
+        str: Each word in the response string followed by a space.
+    """
     for word in response.split():
         yield word + " "
         time.sleep(0.02)
 
 
 def display_conversation():
+    """
+    Display the conversation between the user and the chat-bot.
+
+    This function iterates through the user prompts and chat-bot responses stored in the session state
+    and displays them in the chat interface.
+    """
     for user_prompt, bot_response in zip(st.session_state.user_prompts, st.session_state.bot_responses):
         st.chat_message("user").write(user_prompt)
         st.empty()
@@ -44,10 +65,21 @@ def display_conversation():
 
 
 async def display_response(user_prompt: str):
+    """
+    Grabs the user's input and passes it to the chat-bot to generate a response, then the function displays it.
+
+    Args:
+        user_prompt (str): The user's input prompt.
+    """
     with st.chat_message("assistant"):
         with st.spinner("Thinking... "):
+            # Operations performend while the spinner is displayed
             response = await generate_response()
+
+        # Write out the response with a cool typing effect
         st.write_stream(stream_response(response))
+
+        # Add bot response to session state
         st.session_state.bot_responses.append(response)
 
 
