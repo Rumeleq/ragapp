@@ -63,6 +63,12 @@ def stream_response(response: str):
 
 
 def display_conversation():
+    """
+    Display the conversation between the user and the chat-bot.
+
+    This function iterates through the user prompts and chat-bot responses stored in the session state
+    and displays them in the chat interface.
+    """
     for user_prompt, bot_response in zip(st.session_state.user_prompts, st.session_state.bot_responses):
         st.chat_message("user").write(user_prompt)
         st.empty()
