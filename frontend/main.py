@@ -58,10 +58,11 @@ def display_conversation():
     This function iterates through the user prompts and chat-bot responses stored in the session state
     and displays them in the chat interface.
     """
-    for user_prompt, bot_response in zip(st.session_state.user_prompts, st.session_state.bot_responses):
-        st.chat_message("user").write(user_prompt)
-        st.empty()
-        st.chat_message("assistant").write(bot_response)
+    if "user_prompts" in st.session_state and "bot_responses" in st.session_state:
+        for user_prompt, bot_response in zip(st.session_state.user_prompts, st.session_state.bot_responses):
+            st.chat_message("user").write(user_prompt)
+            st.empty()
+            st.chat_message("assistant").write(bot_response)
 
 
 async def display_response(user_prompt: str):
