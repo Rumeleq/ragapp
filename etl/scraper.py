@@ -15,6 +15,13 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+def save_event_details_to_json(event_details: dict[str]):
+    event_id = re.sub(r'[<>:"/\\|?*]', "_", event_details["event_title"].replace(" ", "_"))
+
+    with open(f"{OUTPUT_DIR}/{event_id}.json", "w", encoding="utf-16") as f:
+        json.dump(event_details, f, indent=4)
+
+
 async def scrape_unikon_events(url: str):
     pass
 
@@ -59,6 +66,7 @@ async def scrape_crossweb_event(relative_url: str):
     event_soup: BeautifulSoup = BeautifulSoup(response_text, "html.parser")
     event_details: dict[str] = {}
 
+    # region Extracting event details
     try:
         # Extracting event title
         event_title = event_soup.find("div", class_="event-var fw-bold", itemprop="name")
@@ -157,11 +165,9 @@ async def scrape_crossweb_event(relative_url: str):
         print(f"Error while scraping {url}: {e}")
         raise
 
-    # Writing the event details to a file
-    event_id = re.sub(r'[<>:"/\\|?*]', "_", event_details["event_title"].replace(" ", "_"))
+    # endregion
 
-    with open(f"{OUTPUT_DIR}/{event_id}.json", "w", encoding="utf-16") as f:
-        json.dump(event_details, f, indent=4)
+    save_event_details_to_json(event_details)
 
 
 async def main():
