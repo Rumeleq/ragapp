@@ -67,4 +67,3 @@ if user_prompt:
     st.chat_message("user").write(user_prompt)
     st.session_state.user_prompts.append(user_prompt)
     asyncio.run(display_response(user_prompt))
-    print({"user_prompts": st.session_state.user_prompts, "bot_responses": st.session_state.bot_responses})
