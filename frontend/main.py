@@ -49,7 +49,7 @@ async def generate_response():
 
 def stream_response(response: str):
     """
-    Streams the words in the given response string.
+    Splits the response string into words and yields each word followed by a space.
 
     Args:
         response (str): The response string to be streamed.
