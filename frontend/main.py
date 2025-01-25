@@ -36,6 +36,12 @@ async def analyze_data():
 
 
 async def generate_response():
+    """
+    Generates a response by randomly selecting words from LOREM_IPSUM.
+
+    Returns:
+        str: The generated response.
+    """
     await asyncio.sleep(1)
     print("generating response...")
     return "".join([str(random.choice(LOREM_IPSUM.split())) + " " for i in range(10)])
