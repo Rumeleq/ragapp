@@ -24,7 +24,6 @@ if "bot_responses" not in st.session_state:
 
 async def generate_response():
     await asyncio.sleep(1)
-    print("generating response...")
     return "".join([str(random.choice(LOREM_IPSUM.split())) + " " for i in range(10)])
 
 
