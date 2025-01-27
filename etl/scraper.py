@@ -8,7 +8,7 @@ from typing import List
 
 import backoff
 import requests
-from aiohttp import ClientSession
+from aiohttp import ClientError, ClientSession
 from bs4 import BeautifulSoup, Tag
 from dotenv import load_dotenv
 
@@ -57,6 +57,7 @@ async def scrape_brite_events(url: str):
     pass
 
 
+@backoff.on_exception(backoff.expo, (ClientError, asyncio.TimeoutError), max_tries=3)
 async def scrape_crossweb_events(url: str):
     event_list_soup: BeautifulSoup = get_event_list_soup(url)
     event_urls: List[str] = [anchor["href"] for anchor in event_list_soup.find_all("a", class_="clearfix")]
@@ -71,7 +72,7 @@ async def scrape_crossweb_events(url: str):
     await asyncio.gather(*tasks)
 
 
-@backoff.on_exception(backoff.expo, Exception, max_tries=3)
+@backoff.on_exception(backoff.expo, (ClientError, asyncio.TimeoutError), max_tries=3)
 async def scrape_crossweb_event(url: str):
     event_soup: BeautifulSoup = await get_event_soup(url)
     event_details: dict[str] = {}
