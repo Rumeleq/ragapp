@@ -6,18 +6,22 @@ import shutil
 from datetime import datetime, timedelta
 from typing import List
 
+import aiohttp
 import backoff
 import ftfy
-from aiohttp import ClientConnectorError, ClientError, ClientSession
 from bs4 import BeautifulSoup, Tag
 from dotenv import load_dotenv
 
 load_dotenv()
 
 
-@backoff.on_exception(backoff.expo, (ClientError, asyncio.TimeoutError, ClientConnectorError), max_tries=3)
+@backoff.on_exception(
+    backoff.expo,
+    (asyncio.TimeoutError, aiohttp.ClientError, aiohttp.ClientConnectorError, ConnectionRefusedError),
+    max_tries=3,
+)
 async def get_soup_from_url(url: str) -> BeautifulSoup:
-    async with ClientSession() as session:
+    async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
             response.raise_for_status()
             response_content: bytes = await response.read()
@@ -76,24 +80,23 @@ async def scrape_unikon_event(url: str):
     # Extracting event title
     event_title_tag: Tag = event_soup.find("h2", property="name")
     event_title = event_title_tag.text.strip() if event_title_tag else "N/A"
-
-    # print(event_title)
+    event_details["event_title"] = event_title
 
     # Finding divs for both time and location
     event_content_details_divs: List[Tag] = event_soup.find_all("div", class_="content-details-box")
 
     # Extracting event time
     event_time = event_content_details_divs[0].text.strip() if event_content_details_divs else "N/A"
-    # print(event_time)
+    event_details["event_time"] = event_time
 
     # Extracting event location
     event_location = event_content_details_divs[1].text.strip() if event_content_details_divs else "N/A"
-    # print(event_location)
+    event_details["event_location"] = event_location
 
     # Extracting event description
     event_description_tag: Tag = event_soup.find("div", class_="content-details-description")
     event_description = event_description_tag.text.strip() if event_description_tag else "N/A"
-    # print(event_description)
+    event_details["event_description"] = event_description
 
     # Finding div for right column info
     event_right_column_div: Tag = event_soup.find("div", class_="content-info-column conference")
@@ -103,22 +106,26 @@ async def scrape_unikon_event(url: str):
     # Extracting event fee
     event_fee_tag: Tag = event_right_column_divs[0]
     event_fee = event_fee_tag.text.strip() if event_fee_tag else "N/A"
+    event_details["event_fee"] = event_fee
 
     # Extracting event organizers
     event_organizers_tag: Tag = event_right_column_divs[1]
     event_organizers = event_organizers_tag.text.strip() if event_organizers_tag else "N/A"
+    event_details["event_organizers"] = event_organizers
 
     # Extracting event scientific disciplines
     event_disciplines_tag: Tag = event_right_column_divs[2]
     event_disciplines = event_disciplines_tag.text.strip() if event_disciplines_tag else "N/A"
+    event_details["event_disciplines"] = event_disciplines
 
     # Extracting event keywords
     event_keywords_tag: Tag = event_right_column_divs[3]
     event_keywords = event_keywords_tag.text.strip() if event_keywords_tag else "N/A"
+    event_details["event_keywords"] = event_keywords
 
     # endregion
 
-    # save_event_details_to_json(event_details)
+    save_event_details_to_json(event_details)
 
 
 async def scrape_brite_events(url: str):
