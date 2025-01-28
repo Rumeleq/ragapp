@@ -8,13 +8,14 @@ from typing import List
 
 import backoff
 import ftfy
-from aiohttp import ClientError, ClientSession
+from aiohttp import ClientConnectionError, ClientError, ClientSession
 from bs4 import BeautifulSoup, Tag
 from dotenv import load_dotenv
 
 load_dotenv()
 
 
+@backoff.on_exception(backoff.expo, (ClientError, asyncio.TimeoutError, ClientConnectionError), max_tries=3)
 async def get_soup_from_url(url: str) -> BeautifulSoup:
     async with ClientSession() as session:
         async with session.get(url) as response:
@@ -67,14 +68,63 @@ async def scrape_unikon_events(url: str):
 
 
 async def scrape_unikon_event(url: str):
-    pass
+    event_soup: BeautifulSoup = await get_soup_from_url(url)
+    event_details: dict[str] = {}
+
+    # region Extracting event details
+
+    # Extracting event title
+    event_title_tag: Tag = event_soup.find("h2", property="name")
+    event_title = event_title_tag.text.strip() if event_title_tag else "N/A"
+
+    # print(event_title)
+
+    # Finding divs for both time and location
+    event_content_details_divs: List[Tag] = event_soup.find_all("div", class_="content-details-box")
+
+    # Extracting event time
+    event_time = event_content_details_divs[0].text.strip() if event_content_details_divs else "N/A"
+    # print(event_time)
+
+    # Extracting event location
+    event_location = event_content_details_divs[1].text.strip() if event_content_details_divs else "N/A"
+    # print(event_location)
+
+    # Extracting event description
+    event_description_tag: Tag = event_soup.find("div", class_="content-details-description")
+    event_description = event_description_tag.text.strip() if event_description_tag else "N/A"
+    # print(event_description)
+
+    # Finding div for right column info
+    event_right_column_div: Tag = event_soup.find("div", class_="content-info-column conference")
+    # Extracting all divs inside
+    event_right_column_divs: List[Tag] = event_right_column_div.find_all("div") if event_right_column_div else []
+
+    # Extracting event fee
+    event_fee_tag: Tag = event_right_column_divs[0]
+    event_fee = event_fee_tag.text.strip() if event_fee_tag else "N/A"
+
+    # Extracting event organizers
+    event_organizers_tag: Tag = event_right_column_divs[1]
+    event_organizers = event_organizers_tag.text.strip() if event_organizers_tag else "N/A"
+
+    # Extracting event scientific disciplines
+    event_disciplines_tag: Tag = event_right_column_divs[2]
+    event_disciplines = event_disciplines_tag.text.strip() if event_disciplines_tag else "N/A"
+
+    # Extracting event keywords
+    event_keywords_tag: Tag = event_right_column_divs[3]
+    event_keywords = event_keywords_tag.text.strip() if event_keywords_tag else "N/A"
+
+    # endregion
+
+    # save_event_details_to_json(event_details)
 
 
 async def scrape_brite_events(url: str):
     pass
 
 
-@backoff.on_exception(backoff.expo, (ClientError, asyncio.TimeoutError), max_tries=3)
 async def scrape_crossweb_events(url: str):
     event_list_soup: BeautifulSoup = await get_soup_from_url(url)
     event_urls: List[str] = [anchor["href"] for anchor in event_list_soup.find_all("a", class_="clearfix")]
@@ -89,110 +139,102 @@ async def scrape_crossweb_events(url: str):
     await asyncio.gather(*tasks)
 
 
-@backoff.on_exception(backoff.expo, (ClientError, asyncio.TimeoutError), max_tries=3)
 async def scrape_crossweb_event(url: str):
     event_soup: BeautifulSoup = await get_soup_from_url(url)
     event_details: dict[str] = {}
 
     # region Extracting event details
-    try:
-        # Extracting event title
-        event_title = event_soup.find("div", class_="event-var fw-bold", itemprop="name")
-        event_details["event_title"] = event_title.text.strip() if event_title else "N/A"
+    # Extracting event title
+    event_title = event_soup.find("div", class_="event-var fw-bold", itemprop="name")
+    event_details["event_title"] = event_title.text.strip() if event_title else "N/A"
 
-        # Extracting event type
-        event_type_label = event_soup.find("div", class_="event-label", string="Typ wydarzenia:")
-        event_details["event_type"] = event_type_label.find_next_sibling("div").text.strip() if event_type_label else "N/A"
+    # Extracting event type
+    event_type_label = event_soup.find("div", class_="event-label", string="Typ wydarzenia:")
+    event_details["event_type"] = event_type_label.find_next_sibling("div").text.strip() if event_type_label else "N/A"
 
-        # Extracting event category
-        event_category_label = event_soup.find("div", class_="event-label", string="Kategoria:")
-        event_details["event_category"] = (
-            event_category_label.find_next_sibling("div").text.strip() if event_category_label else "N/A"
-        )
+    # Extracting event category
+    event_category_label = event_soup.find("div", class_="event-label", string="Kategoria:")
+    event_details["event_category"] = (
+        event_category_label.find_next_sibling("div").text.strip() if event_category_label else "N/A"
+    )
 
-        # Extracting event subject
-        event_subject_label = event_soup.find("div", class_="event-label", string="Tematyka:")
-        event_details["event_subject"] = (
-            event_subject_label.find_next_sibling("div").text.strip() if event_subject_label else "N/A"
-        )
+    # Extracting event subject
+    event_subject_label = event_soup.find("div", class_="event-label", string="Tematyka:")
+    event_details["event_subject"] = (
+        event_subject_label.find_next_sibling("div").text.strip() if event_subject_label else "N/A"
+    )
 
-        # Extracting event date
-        event_date_label = event_soup.find("div", class_="event-label", string="Data:")
-        event_details["event_date"] = event_date_label.find_next_sibling("div").text.strip() if event_date_label else "N/A"
+    # Extracting event date
+    event_date_label = event_soup.find("div", class_="event-label", string="Data:")
+    event_details["event_date"] = event_date_label.find_next_sibling("div").text.strip() if event_date_label else "N/A"
 
-        # Extracting event time
-        event_time_label = event_soup.find("div", class_="event-label", string="Godzina:")
-        event_details["event_time"] = event_time_label.find_next_sibling("div").text.strip() if event_time_label else "N/A"
+    # Extracting event time
+    event_time_label = event_soup.find("div", class_="event-label", string="Godzina:")
+    event_details["event_time"] = event_time_label.find_next_sibling("div").text.strip() if event_time_label else "N/A"
 
-        # Extracting event language
-        event_language_label = event_soup.find("div", class_="event-label", string="Język:")
-        event_details["event_language"] = (
-            event_language_label.find_next_sibling("div").text.strip() if event_language_label else "N/A"
-        )
+    # Extracting event language
+    event_language_label = event_soup.find("div", class_="event-label", string="Język:")
+    event_details["event_language"] = (
+        event_language_label.find_next_sibling("div").text.strip() if event_language_label else "N/A"
+    )
 
-        # Extracting event fee
-        event_fee_label = event_soup.find("div", class_="event-label", string="Wstęp:")
-        event_details["event_fee"] = event_fee_label.find_next_sibling("div").text.strip() if event_fee_label else "N/A"
+    # Extracting event fee
+    event_fee_label = event_soup.find("div", class_="event-label", string="Wstęp:")
+    event_details["event_fee"] = event_fee_label.find_next_sibling("div").text.strip() if event_fee_label else "N/A"
 
-        # Extracting event city
-        event_city_label = event_soup.find("div", class_="event-label", string="Miasto:")
-        event_details["event_city"] = event_city_label.find_next_sibling("div").text.strip() if event_city_label else "N/A"
+    # Extracting event city
+    event_city_label = event_soup.find("div", class_="event-label", string="Miasto:")
+    event_details["event_city"] = event_city_label.find_next_sibling("div").text.strip() if event_city_label else "N/A"
 
-        # Extracting event location
-        event_location_label = event_soup.find("div", class_="event-label", string="Miejsce:")
-        event_details["event_location"] = (
-            event_location_label.find_next_sibling("div").text.strip() if event_location_label else "N/A"
-        )
+    # Extracting event location
+    event_location_label = event_soup.find("div", class_="event-label", string="Miejsce:")
+    event_details["event_location"] = (
+        event_location_label.find_next_sibling("div").text.strip() if event_location_label else "N/A"
+    )
 
-        # Extracting event location address
-        event_location_address_label = event_soup.find("div", class_="event-label", string="Adres:")
-        event_details["event_location_address"] = (
-            event_location_address_label.find_next_sibling("div").text.strip() if event_location_address_label else "N/A"
-        )
+    # Extracting event location address
+    event_location_address_label = event_soup.find("div", class_="event-label", string="Adres:")
+    event_details["event_location_address"] = (
+        event_location_address_label.find_next_sibling("div").text.strip() if event_location_address_label else "N/A"
+    )
 
-        # Extracting event registration link
-        event_registration_link = event_soup.find("a", class_="eventDetailLink.apply-link-js")
-        event_details["event_registration_link"] = (
-            event_registration_link["href"].strip() if event_registration_link else "N/A"
-        )
+    # Extracting event registration link
+    event_registration_link = event_soup.find("a", class_="eventDetailLink.apply-link-js")
+    event_details["event_registration_link"] = event_registration_link["href"].strip() if event_registration_link else "N/A"
 
-        # Extracting event webpage
-        event_webpage = event_soup.find("a", class_="eventDetailLink.apply-link-js", target="_blank")
-        event_details["event_webpage"] = event_webpage["href"].strip() if event_webpage else "N/A"
+    # Extracting event webpage
+    event_webpage = event_soup.find("a", class_="eventDetailLink.apply-link-js", target="_blank")
+    event_details["event_webpage"] = event_webpage["href"].strip() if event_webpage else "N/A"
 
-        # Extracting event speakers
-        event_speakers: List[Tag] = event_soup.find_all("div", class_="speaker-box")
-        event_details["event_speakers"] = (
-            [speaker.div.a["href"].strip() for speaker in event_speakers] if event_speakers else "N/A"
-        )
+    # Extracting event speakers
+    event_speakers: List[Tag] = event_soup.find_all("div", class_="speaker-box")
+    event_details["event_speakers"] = (
+        [speaker.div.a["href"].strip() for speaker in event_speakers] if event_speakers else "N/A"
+    )
 
-        # Extracting event agenda
-        # If there are two divs with this class, the first one contains the agenda;
-        event_details_outer_div: List[Tag] = event_soup.find_all("div", class_="event-detail description")
-        if len(event_details_outer_div) == 2:
-            event_agenda = event_details_outer_div[0]
-        else:
-            event_agenda = None
+    # Extracting event agenda
+    # If there are two divs with this class, the first one contains the agenda;
+    event_details_outer_div: List[Tag] = event_soup.find_all("div", class_="event-detail description")
+    if len(event_details_outer_div) == 2:
+        event_agenda = event_details_outer_div[0]
+    else:
+        event_agenda = None
 
-        event_details["event_agenda"] = event_agenda.text.strip() if event_agenda else "N/A"
+    event_details["event_agenda"] = event_agenda.text.strip() if event_agenda else "N/A"
 
-        # Extracting event description
-        # Description shares the class with agenda, if present
-        if len(event_details_outer_div) == 2:
-            event_description = event_details_outer_div[1]
-        elif len(event_details_outer_div) == 1:
-            event_description = event_details_outer_div[0].find("div", class_="event-var ql-editor")
-        else:
-            event_description = None
+    # Extracting event description
+    # Description shares the class with agenda, if present
+    if len(event_details_outer_div) == 2:
+        event_description = event_details_outer_div[1]
+    elif len(event_details_outer_div) == 1:
+        event_description = event_details_outer_div[0].find("div", class_="event-var ql-editor")
+    else:
+        event_description = None
 
-        event_details["event_description"] = event_description.text.strip() if event_description else "N/A"
+    event_details["event_description"] = event_description.text.strip() if event_description else "N/A"
 
-        # Setting source
-        event_details["source"] = url
-    except Exception as e:
-        print(f"Error while scraping {url}: {e}")
-        raise
-
+    # Setting source
+    event_details["source"] = url
     # endregion
 
     save_event_details_to_json(event_details)
