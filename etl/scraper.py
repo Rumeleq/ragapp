@@ -125,7 +125,7 @@ async def scrape_unikon_event(url: str):
 
     # Setting event source
     event_details["source"] = url
-    
+
     # endregion
 
     save_event_details_to_json(event_details)
