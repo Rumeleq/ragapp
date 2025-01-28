@@ -51,7 +51,7 @@ def save_event_details_to_json(event_details: dict[str]):
     event_id = re.sub(r'[<>:"/\\|?*]', "_", event_details["event_title"].replace(" ", "_"))
 
     with open(f"{OUTPUT_DIR}/{event_id}.json", "w", encoding="utf-8") as f:
-        json.dump(event_details, f, indent=4)
+        json.dump(event_details, f, indent=4, ensure_ascii=False)
 
 
 async def scrape_unikon_events(url: str):
