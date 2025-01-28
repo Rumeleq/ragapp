@@ -8,7 +8,6 @@ from typing import List
 
 import backoff
 import ftfy
-import requests
 from aiohttp import ClientError, ClientSession
 from bs4 import BeautifulSoup, Tag
 from dotenv import load_dotenv
@@ -16,16 +15,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-def get_event_list_soup(url: str) -> BeautifulSoup:
-    with requests.get(url, allow_redirects=False) as response:
-        response.raise_for_status()
-        event_list_soup = BeautifulSoup(response.text, "html.parser")
-    return event_list_soup
-
-
-async def get_event_soup(url: str) -> BeautifulSoup:
-    print(f"Scraping event: {url}")
-
+async def get_soup_from_url(url: str) -> BeautifulSoup:
     async with ClientSession() as session:
         async with session.get(url) as response:
             response.raise_for_status()
@@ -37,8 +27,8 @@ async def get_event_soup(url: str) -> BeautifulSoup:
         response_text = response_content.decode("utf-8", errors="replace")
         response_text = ftfy.fix_text(response_text)
     response_text = re.sub(r"\s+", " ", response_text)
-    event_soup: BeautifulSoup = BeautifulSoup(response_text, "html.parser")
-    return event_soup
+    soup: BeautifulSoup = BeautifulSoup(response_text, "html.parser")
+    return soup
 
 
 def save_event_details_to_json(event_details: dict[str]):
@@ -57,7 +47,7 @@ async def scrape_unikon_events(url: str):
     event_urls: List[str] = []
     page_index = 1
     while True:
-        event_list_soup: BeautifulSoup = get_event_list_soup(f"{url},s{page_index}")
+        event_list_soup: BeautifulSoup = await get_soup_from_url(f"{url},s{page_index}")
         event_urls.extend(anchor["href"] for anchor in event_list_soup.find_all("a", property="url"))
         page_index += 1
 
@@ -65,7 +55,19 @@ async def scrape_unikon_events(url: str):
         if len(nav_anchors) == 1 and "Poprzednie" in nav_anchors[0].text:
             break
 
-    print(f"Found {len(event_urls)} events on Unikonferencje: {url.split('/')[-1]}")
+    print(f"Found {len(event_urls)} events on Unikonferencje - {url.split('/')[-1]}")
+
+    base_url = "https://unikonferencje.pl"
+
+    tasks = []
+    for event_url in event_urls:
+        tasks.append(asyncio.create_task(scrape_unikon_event(base_url + event_url)))
+
+    await asyncio.gather(*tasks)
+
+
+async def scrape_unikon_event(url: str):
+    pass
 
 
 async def scrape_brite_events(url: str):
@@ -74,7 +76,7 @@ async def scrape_brite_events(url: str):
 
 @backoff.on_exception(backoff.expo, (ClientError, asyncio.TimeoutError), max_tries=3)
 async def scrape_crossweb_events(url: str):
-    event_list_soup: BeautifulSoup = get_event_list_soup(url)
+    event_list_soup: BeautifulSoup = await get_soup_from_url(url)
     event_urls: List[str] = [anchor["href"] for anchor in event_list_soup.find_all("a", class_="clearfix")]
     print(f"Found {len(event_urls)} events on Crossweb")
 
@@ -89,7 +91,7 @@ async def scrape_crossweb_events(url: str):
 
 @backoff.on_exception(backoff.expo, (ClientError, asyncio.TimeoutError), max_tries=3)
 async def scrape_crossweb_event(url: str):
-    event_soup: BeautifulSoup = await get_event_soup(url)
+    event_soup: BeautifulSoup = await get_soup_from_url(url)
     event_details: dict[str] = {}
 
     # region Extracting event details
