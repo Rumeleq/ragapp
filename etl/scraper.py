@@ -7,12 +7,51 @@ from datetime import datetime, timedelta
 from typing import List
 
 import backoff
+import ftfy
 import requests
-from aiohttp import ClientSession
+from aiohttp import ClientError, ClientSession
 from bs4 import BeautifulSoup, Tag
 from dotenv import load_dotenv
 
 load_dotenv()
+
+
+def get_event_list_soup(url: str) -> BeautifulSoup:
+    with requests.get(url) as response:
+        response.raise_for_status()
+        response_text = response.text
+        event_list_soup = BeautifulSoup(response_text, "html.parser")
+    return event_list_soup
+
+
+async def get_event_soup(url: str) -> BeautifulSoup:
+    print(f"Scraping event: {url}")
+
+    async with ClientSession() as session:
+        async with session.get(url) as response:
+            response.raise_for_status()
+            response_content: bytes = await response.read()
+
+    try:
+        response_text = response_content.decode("utf-8")
+    except UnicodeDecodeError:
+        response_text = response_content.decode("utf-8", errors="replace")
+        response_text = ftfy.fix_text(response_text)
+    response_text = re.sub(r"\s+", " ", response_text)
+    event_soup: BeautifulSoup = BeautifulSoup(response_text, "html.parser")
+    return event_soup
+
+
+def save_event_details_to_json(event_details: dict[str]):
+    print(f"Saving event: {event_details['event_title']}")
+    if event_details["event_title"] == "N/A":
+        print(event_details)
+        return
+
+    event_id = re.sub(r'[<>:"/\\|?*]', "_", event_details["event_title"].replace(" ", "_"))
+
+    with open(f"{OUTPUT_DIR}/{event_id}.json", "w", encoding="utf-8") as f:
+        json.dump(event_details, f, indent=4)
 
 
 async def scrape_unikon_events(url: str):
@@ -23,42 +62,27 @@ async def scrape_brite_events(url: str):
     pass
 
 
+@backoff.on_exception(backoff.expo, (ClientError, asyncio.TimeoutError), max_tries=3)
 async def scrape_crossweb_events(url: str):
-    with requests.get(url) as response:
-        response.raise_for_status()
-        response_text = response.text
-        event_list_soup = BeautifulSoup(response_text, "html.parser")
+    event_list_soup: BeautifulSoup = get_event_list_soup(url)
     event_urls: List[str] = [anchor["href"] for anchor in event_list_soup.find_all("a", class_="clearfix")]
     print(f"Found {len(event_urls)} events on Crossweb")
 
+    base_url = "https://crossweb.pl"
+
     tasks = []
     for event_url in event_urls:
-        tasks.append(asyncio.create_task(scrape_crossweb_event(event_url)))
+        tasks.append(asyncio.create_task(scrape_crossweb_event(base_url + event_url)))
 
     await asyncio.gather(*tasks)
 
 
-@backoff.on_exception(backoff.expo, Exception, max_tries=3)
-async def scrape_crossweb_event(relative_url: str):
-    base_url = "https://crossweb.pl"
-    url = base_url + relative_url
-    print(f"Scraping event: {url}")
-
-    async with ClientSession() as session:
-        async with session.get(url) as response:
-            response.raise_for_status()
-            response_text = await response.read()
-
-    for i, codec in enumerate(CODECS):
-        try:
-            response_text = response_text.decode(codec)
-            break
-        except UnicodeDecodeError:
-            print(f"Decoding error, trying {CODECS[i+1]}: {url}")
-
-    event_soup: BeautifulSoup = BeautifulSoup(response_text, "html.parser")
+@backoff.on_exception(backoff.expo, (ClientError, asyncio.TimeoutError), max_tries=3)
+async def scrape_crossweb_event(url: str):
+    event_soup: BeautifulSoup = await get_event_soup(url)
     event_details: dict[str] = {}
 
+    # region Extracting event details
     try:
         # Extracting event title
         event_title = event_soup.find("div", class_="event-var fw-bold", itemprop="name")
@@ -157,11 +181,9 @@ async def scrape_crossweb_event(relative_url: str):
         print(f"Error while scraping {url}: {e}")
         raise
 
-    # Writing the event details to a file
-    event_id = re.sub(r'[<>:"/\\|?*]', "_", event_details["event_title"].replace(" ", "_"))
+    # endregion
 
-    with open(f"{OUTPUT_DIR}/{event_id}.json", "w", encoding="utf-16") as f:
-        json.dump(event_details, f, indent=4)
+    save_event_details_to_json(event_details)
 
 
 async def main():
@@ -202,7 +224,6 @@ if __name__ == "__main__":
         OUTPUT_DIR = os.getenv("SCRAPING_OUTPUT_DIR")
         clear_output_dir()
         URLS: List[str] = os.getenv("SCRAPING_URLS").split(",")
-        CODECS: List[str] = ["utf-8", "utf-16", "iso-8859-1", "windows-1250", "windows-1252", "iso-8859-2"]
         asyncio.run(main())
 
         # Update the last update timestamp
