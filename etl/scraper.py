@@ -17,10 +17,9 @@ load_dotenv()
 
 
 def get_event_list_soup(url: str) -> BeautifulSoup:
-    with requests.get(url) as response:
+    with requests.get(url, allow_redirects=False) as response:
         response.raise_for_status()
-        response_text = response.text
-        event_list_soup = BeautifulSoup(response_text, "html.parser")
+        event_list_soup = BeautifulSoup(response.text, "html.parser")
     return event_list_soup
 
 
@@ -55,7 +54,18 @@ def save_event_details_to_json(event_details: dict[str]):
 
 
 async def scrape_unikon_events(url: str):
-    pass
+    event_urls: List[str] = []
+    page_index = 1
+    while True:
+        event_list_soup: BeautifulSoup = get_event_list_soup(f"{url},s{page_index}")
+        event_urls.extend(anchor["href"] for anchor in event_list_soup.find_all("a", property="url"))
+        page_index += 1
+
+        nav_anchors: List[Tag] = event_list_soup.find_all("a", class_="n-p")
+        if len(nav_anchors) == 1 and "Poprzednie" in nav_anchors[0].text:
+            break
+
+    print(f"Found {len(event_urls)} events on Unikonferencje: {url.split('/')[-1]}")
 
 
 async def scrape_brite_events(url: str):
