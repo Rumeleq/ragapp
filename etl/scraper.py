@@ -4,7 +4,6 @@ import os
 import re
 import shutil
 from datetime import datetime, timedelta
-from idlelib.replace import replace
 from typing import List
 
 import aiohttp
@@ -124,6 +123,9 @@ async def scrape_unikon_event(url: str):
     event_keywords = event_keywords_tag.text.strip() if event_keywords_tag else "N/A"
     event_details["event_keywords"] = event_keywords
 
+    # Setting event source
+    event_details["source"] = url
+    
     # endregion
 
     save_event_details_to_json(event_details)
