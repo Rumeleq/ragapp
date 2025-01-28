@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from typing import List
 
 import backoff
+import ftfy
 import requests
 from aiohttp import ClientError, ClientSession
 from bs4 import BeautifulSoup, Tag
@@ -29,23 +30,27 @@ async def get_event_soup(url: str) -> BeautifulSoup:
     async with ClientSession() as session:
         async with session.get(url) as response:
             response.raise_for_status()
-            response_text = await response.read()
+            response_content: bytes = await response.read()
 
-    for i, codec in enumerate(CODECS):
-        try:
-            response_text = response_text.decode(codec)
-            break
-        except UnicodeDecodeError:
-            print(f"Decoding error, trying {CODECS[i + 1]}: {url}")
-
+    try:
+        response_text = response_content.decode("utf-8")
+    except UnicodeDecodeError:
+        response_text = response_content.decode("utf-8", errors="replace")
+        response_text = ftfy.fix_text(response_text)
+    response_text = re.sub(r"\s+", " ", response_text)
     event_soup: BeautifulSoup = BeautifulSoup(response_text, "html.parser")
     return event_soup
 
 
 def save_event_details_to_json(event_details: dict[str]):
+    print(f"Saving event: {event_details['event_title']}")
+    if event_details["event_title"] == "N/A":
+        print(event_details)
+        return
+
     event_id = re.sub(r'[<>:"/\\|?*]', "_", event_details["event_title"].replace(" ", "_"))
 
-    with open(f"{OUTPUT_DIR}/{event_id}.json", "w", encoding="utf-16") as f:
+    with open(f"{OUTPUT_DIR}/{event_id}.json", "w", encoding="utf-8") as f:
         json.dump(event_details, f, indent=4)
 
 
@@ -219,7 +224,6 @@ if __name__ == "__main__":
         OUTPUT_DIR = os.getenv("SCRAPING_OUTPUT_DIR")
         clear_output_dir()
         URLS: List[str] = os.getenv("SCRAPING_URLS").split(",")
-        CODECS: List[str] = ["utf-8", "utf-16", "iso-8859-1", "windows-1250", "windows-1252", "iso-8859-2"]
         asyncio.run(main())
 
         # Update the last update timestamp
