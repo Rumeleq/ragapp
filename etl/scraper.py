@@ -4,6 +4,7 @@ import os
 import re
 import shutil
 from datetime import datetime, timedelta
+from idlelib.replace import replace
 from typing import List
 
 import aiohttp
@@ -216,7 +217,8 @@ async def scrape_crossweb_event(url: str):
     # Extracting event speakers
     event_speakers: List[Tag] = event_soup.find_all("div", class_="speaker-box")
     event_details["event_speakers"] = (
-        [speaker.div.a["href"].strip() for speaker in event_speakers] if event_speakers else "N/A"
+        ', '.join(speaker.div.a["href"].split('/')[2].replace("-", " ").strip() for speaker in event_speakers)
+        if event_speakers else "N/A"
     )
 
     # Extracting event agenda
