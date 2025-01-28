@@ -8,14 +8,14 @@ from typing import List
 
 import backoff
 import ftfy
-from aiohttp import ClientConnectionError, ClientError, ClientSession
+from aiohttp import ClientConnectorError, ClientError, ClientSession
 from bs4 import BeautifulSoup, Tag
 from dotenv import load_dotenv
 
 load_dotenv()
 
 
-@backoff.on_exception(backoff.expo, (ClientError, asyncio.TimeoutError, ClientConnectionError), max_tries=3)
+@backoff.on_exception(backoff.expo, (ClientError, asyncio.TimeoutError, ClientConnectorError), max_tries=3)
 async def get_soup_from_url(url: str) -> BeautifulSoup:
     async with ClientSession() as session:
         async with session.get(url) as response:
