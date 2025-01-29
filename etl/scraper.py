@@ -1,8 +1,10 @@
 import asyncio
 import json
 import os
+import random
 import re
 import shutil
+import time
 from datetime import datetime, timedelta
 from typing import List
 
@@ -18,11 +20,13 @@ load_dotenv()
 @backoff.on_exception(
     backoff.expo,
     (asyncio.TimeoutError, aiohttp.ClientError, aiohttp.ClientConnectorError, ConnectionRefusedError),
-    max_tries=3,
+    max_tries=5,
+    jitter=backoff.full_jitter,
 )
 async def get_soup_from_url(url: str) -> BeautifulSoup:
+    await asyncio.sleep(random.uniform(1, 3))
     async with aiohttp.ClientSession() as session:
-        async with session.get(url) as response:
+        async with session.get(url, headers=HEADERS) as response:
             response.raise_for_status()
             response_content: bytes = await response.read()
 
@@ -72,6 +76,9 @@ async def scrape_unikon_events(url: str):
 
 
 async def scrape_unikon_event(url: str):
+    if url in visited_urls:
+        return
+    visited_urls.add(url)
     event_soup: BeautifulSoup = await get_soup_from_url(url)
     event_details: dict[str] = {}
 
@@ -253,6 +260,8 @@ async def scrape_crossweb_event(url: str):
 
 
 async def main():
+    start_time = time.perf_counter()
+
     tasks = []
     for url in URLS:
         if "unikonferencje" in url:
@@ -265,6 +274,9 @@ async def main():
     print("Scraping started")
     await asyncio.gather(*tasks)
     print("Scraping complete")
+
+    end_time = time.perf_counter()
+    print(f"Total runtime: {end_time - start_time:.2f} seconds")
 
 
 def clear_output_dir():
@@ -290,6 +302,10 @@ if __name__ == "__main__":
         OUTPUT_DIR = os.getenv("SCRAPING_OUTPUT_DIR")
         clear_output_dir()
         URLS: List[str] = os.getenv("SCRAPING_URLS").split(",")
+        visited_urls = set()
+        HEADERS = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        }
         asyncio.run(main())
 
         # Update the last update timestamp
