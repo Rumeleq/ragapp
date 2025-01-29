@@ -4,8 +4,8 @@ import os
 import random
 import re
 import shutil
-import time
 import subprocess
+import time
 from datetime import datetime, timedelta
 from typing import List
 
@@ -15,6 +15,7 @@ import backoff
 import ftfy
 from bs4 import BeautifulSoup, Tag
 from dotenv import load_dotenv
+from vector_saver import add_data_to_vector_storage, create_new_vector_storage
 
 load_dotenv()
 
@@ -42,7 +43,7 @@ async def get_soup_from_url(url: str) -> BeautifulSoup:
     return soup
 
 
-async def save_event_details_to_json(event_details: dict[str]):
+async def save_event_details(event_details: dict[str]):
     print(f"Saving event: {event_details['event_title']}")
     if event_details["event_title"] == "N/A":
         print(event_details)
@@ -56,7 +57,9 @@ async def save_event_details_to_json(event_details: dict[str]):
     filtered_event_details = {
         key: value for key, value in event_details.items() if key != "event_description" and value != "N/A"
     }
-    await add_data_to_database(filtered_event_details, event_details["event_description"], f"{OUTPUT_DIR}/{event_id}.json")
+    await add_data_to_vector_storage(
+        vector_storage, filtered_event_details, event_details["event_description"], f"{OUTPUT_DIR}/{event_id}.json"
+    )
 
 
 async def scrape_unikon_events(url: str):
@@ -142,7 +145,7 @@ async def scrape_unikon_event(url: str):
 
     # endregion
 
-    await save_event_details_to_json(event_details)
+    await save_event_details(event_details)
 
 
 async def scrape_brite_events(url: str):
@@ -263,7 +266,7 @@ async def scrape_crossweb_event(url: str):
     event_details["source"] = url
     # endregion
 
-    await save_event_details_to_json(event_details)
+    await save_event_details(event_details)
 
 
 async def main():
@@ -293,29 +296,6 @@ def clear_output_dir():
     os.makedirs(OUTPUT_DIR)
 
 
-def create_new_databse():
-    CHROMA_PATH = "../chroma"
-
-    if os.path.exists(CHROMA_PATH):
-        for item in os.listdir(CHROMA_PATH):
-            item_path = os.path.join(CHROMA_PATH, item)
-            if os.path.isfile(item_path) or os.path.islink(item_path):
-                os.unlink(item_path)
-            elif os.path.isdir(item_path):
-                shutil.rmtree(item_path)
-        print("The database has been deleted")
-    else:
-        print(f"Directory {CHROMA_PATH} does not exist")
-
-    embedding_function = OpenAIEmbeddings(model="text-embedding-3-small", api_key=API_KEY)
-
-    vector_storage = Chroma(
-        collection_name="PolandEventInfo", persist_directory=CHROMA_PATH, embedding_function=embedding_function
-    )
-
-    return vector_storage
-
-
 if __name__ == "__main__":
     """
     try:
@@ -332,7 +312,7 @@ if __name__ == "__main__":
         OUTPUT_DIR = os.getenv("SCRAPING_OUTPUT_DIR")
         API_KEY = os.getenv("OPENAI_API_KEY")
         clear_output_dir()
-        vector_storage = create_new_databse()
+        vector_storage = create_new_vector_storage(API_KEY)
         URLS: List[str] = os.getenv("SCRAPING_URLS").split(",")
         visited_urls = set()
         HEADERS = {
