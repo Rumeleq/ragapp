@@ -1,4 +1,3 @@
-import asyncio
 import json
 import os
 import shutil
@@ -6,6 +5,7 @@ import shutil
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain_openai import OpenAIEmbeddings
+from pydantic import SecretStr
 
 
 async def add_data_to_vector_storage(vector_storage: Chroma, main_information: dict[str], description: str, file_path: str):
@@ -25,7 +25,7 @@ async def add_data_to_vector_storage(vector_storage: Chroma, main_information: d
         print(f"Error while embedding {file_path} or adding to vector_storage: {e}")
 
 
-def create_new_vector_storage(API_KEY: str) -> Chroma:
+def create_new_vector_storage(api_key: SecretStr) -> Chroma:
     CHROMA_PATH = "../chroma"
 
     if os.path.exists(CHROMA_PATH):
@@ -39,7 +39,7 @@ def create_new_vector_storage(API_KEY: str) -> Chroma:
     else:
         print(f"Directory {CHROMA_PATH} does not exist")
 
-    embedding_function = OpenAIEmbeddings(model="text-embedding-3-small", api_key=API_KEY)
+    embedding_function = OpenAIEmbeddings(model="text-embedding-3-small", api_key=api_key)
 
     vector_storage = Chroma(
         collection_name="PolandEventInfo", persist_directory=CHROMA_PATH, embedding_function=embedding_function

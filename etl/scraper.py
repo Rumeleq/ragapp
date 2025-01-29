@@ -15,6 +15,7 @@ import backoff
 import ftfy
 from bs4 import BeautifulSoup, Tag
 from dotenv import load_dotenv
+from pydantic import SecretStr
 from vector_saver import add_data_to_vector_storage, create_new_vector_storage
 
 load_dotenv()
@@ -310,7 +311,7 @@ if __name__ == "__main__":
 
     if last_update_timestamp is None or datetime.now() - last_update_timestamp > timedelta(hours=12):
         OUTPUT_DIR = os.getenv("SCRAPING_OUTPUT_DIR")
-        API_KEY = os.getenv("OPENAI_API_KEY")
+        API_KEY: SecretStr = os.getenv("OPENAI_API_KEY")
         clear_output_dir()
         vector_storage = create_new_vector_storage(API_KEY)
         URLS: List[str] = os.getenv("SCRAPING_URLS").split(",")
