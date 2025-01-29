@@ -8,6 +8,7 @@ import time
 from datetime import datetime, timedelta
 from typing import List
 
+import aiofiles
 import aiohttp
 import backoff
 import ftfy
@@ -40,7 +41,7 @@ async def get_soup_from_url(url: str) -> BeautifulSoup:
     return soup
 
 
-def save_event_details_to_json(event_details: dict[str]):
+async def save_event_details_to_json(event_details: dict[str]):
     print(f"Saving event: {event_details['event_title']}")
     if event_details["event_title"] == "N/A":
         print(event_details)
@@ -48,8 +49,8 @@ def save_event_details_to_json(event_details: dict[str]):
 
     event_id = re.sub(r'[<>:"/\\|?*]', "_", event_details["event_title"].replace(" ", "_"))
 
-    with open(f"{OUTPUT_DIR}/{event_id}.json", "w", encoding="utf-8") as f:
-        json.dump(event_details, f, indent=4, ensure_ascii=False)
+    async with aiofiles.open(f"{OUTPUT_DIR}/{event_id}.json", "w", encoding="utf-8") as f:
+        await f.write(json.dumps(event_details, indent=4, ensure_ascii=False))
 
 
 async def scrape_unikon_events(url: str):
@@ -135,7 +136,7 @@ async def scrape_unikon_event(url: str):
 
     # endregion
 
-    save_event_details_to_json(event_details)
+    await save_event_details_to_json(event_details)
 
 
 async def scrape_brite_events(url: str):
@@ -256,7 +257,7 @@ async def scrape_crossweb_event(url: str):
     event_details["source"] = url
     # endregion
 
-    save_event_details_to_json(event_details)
+    await save_event_details_to_json(event_details)
 
 
 async def main():
