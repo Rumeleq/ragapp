@@ -5,6 +5,7 @@ import random
 import re
 import shutil
 import time
+import subprocess
 from datetime import datetime, timedelta
 from typing import List
 
@@ -51,6 +52,11 @@ async def save_event_details_to_json(event_details: dict[str]):
 
     async with aiofiles.open(f"{OUTPUT_DIR}/{event_id}.json", "w", encoding="utf-8") as f:
         await f.write(json.dumps(event_details, indent=4, ensure_ascii=False))
+
+    filtered_event_details = {
+        key: value for key, value in event_details.items() if key != "event_description" and value != "N/A"
+    }
+    await add_data_to_database(filtered_event_details, event_details["event_description"], f"{OUTPUT_DIR}/{event_id}.json")
 
 
 async def scrape_unikon_events(url: str):
@@ -287,6 +293,29 @@ def clear_output_dir():
     os.makedirs(OUTPUT_DIR)
 
 
+def create_new_databse():
+    CHROMA_PATH = "../chroma"
+
+    if os.path.exists(CHROMA_PATH):
+        for item in os.listdir(CHROMA_PATH):
+            item_path = os.path.join(CHROMA_PATH, item)
+            if os.path.isfile(item_path) or os.path.islink(item_path):
+                os.unlink(item_path)
+            elif os.path.isdir(item_path):
+                shutil.rmtree(item_path)
+        print("The database has been deleted")
+    else:
+        print(f"Directory {CHROMA_PATH} does not exist")
+
+    embedding_function = OpenAIEmbeddings(model="text-embedding-3-small", api_key=API_KEY)
+
+    vector_storage = Chroma(
+        collection_name="PolandEventInfo", persist_directory=CHROMA_PATH, embedding_function=embedding_function
+    )
+
+    return vector_storage
+
+
 if __name__ == "__main__":
     """
     try:
@@ -301,7 +330,9 @@ if __name__ == "__main__":
 
     if last_update_timestamp is None or datetime.now() - last_update_timestamp > timedelta(hours=12):
         OUTPUT_DIR = os.getenv("SCRAPING_OUTPUT_DIR")
+        API_KEY = os.getenv("OPENAI_API_KEY")
         clear_output_dir()
+        vector_storage = create_new_databse()
         URLS: List[str] = os.getenv("SCRAPING_URLS").split(",")
         visited_urls = set()
         HEADERS = {
@@ -314,3 +345,5 @@ if __name__ == "__main__":
             f.write(datetime.now().strftime("%d-%m-%Y %H:%M"))
     else:
         print("Last update was less than 12 hours ago. Skipping scraping.")
+
+    subprocess.Popen(["streamlit", "run", "../frontend/main.py"])
