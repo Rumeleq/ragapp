@@ -18,9 +18,7 @@ CHROMA_PATH = "../chroma"
 
 load_dotenv()
 
-API_KEY = os.getenv("OPENAI_API_KEY")
-
-chat_model = ChatOpenAI(model="gpt-4o-mini", temperature=0.2, api_key=API_KEY)
+chat_model = ChatOpenAI(model="gpt-4o-mini", temperature=0.2)
 
 use_search_prompt = ChatPromptTemplate.from_messages(
     [
@@ -54,9 +52,9 @@ if "bot_responses" not in st.session_state:
     st.session_state.bot_responses = []
 
 
-def connect_to_vector_storage(API_KEY, collection_name, file_path):
+def connect_to_vector_storage(collection_name, file_path):
     global vector_storage
-    embedding_function = OpenAIEmbeddings(model="text-embedding-3-small", api_key=API_KEY)
+    embedding_function = OpenAIEmbeddings(model="text-embedding-3-small")
     vector_storage = Chroma(
         collection_name=collection_name, persist_directory=file_path, embedding_function=embedding_function
     )
@@ -177,7 +175,7 @@ async def display_response(user_prompt: str):
         st.session_state.bot_responses.append(response)
 
 
-connect_to_vector_storage(API_KEY, "PolandEventInfo", CHROMA_PATH)
+connect_to_vector_storage("PolandEventInfo", CHROMA_PATH)
 
 # Get user input from chat input
 user_prompt = st.chat_input("Ask a question about tech meetups in Poland")
