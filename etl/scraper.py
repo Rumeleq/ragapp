@@ -4,6 +4,7 @@ import os
 import random
 import re
 import shutil
+import subprocess
 import time
 from datetime import datetime, timedelta
 from typing import List
@@ -14,6 +15,7 @@ import backoff
 import ftfy
 from bs4 import BeautifulSoup, Tag
 from dotenv import load_dotenv
+from vector_saver import add_data_to_vector_storage, create_new_vector_storage
 
 load_dotenv()
 
@@ -41,7 +43,7 @@ async def get_soup_from_url(url: str) -> BeautifulSoup:
     return soup
 
 
-async def save_event_details_to_json(event_details: dict[str]):
+async def save_event_details(event_details: dict[str]):
     print(f"Saving event: {event_details['event_title']}")
     if event_details["event_title"] == "N/A":
         print(event_details)
@@ -51,6 +53,13 @@ async def save_event_details_to_json(event_details: dict[str]):
 
     async with aiofiles.open(f"{OUTPUT_DIR}/{event_id}.json", "w", encoding="utf-8") as f:
         await f.write(json.dumps(event_details, indent=4, ensure_ascii=False))
+
+    filtered_event_details = {
+        key: value for key, value in event_details.items() if key != "event_description" and value != "N/A"
+    }
+    await add_data_to_vector_storage(
+        vector_storage, filtered_event_details, event_details["event_description"], f"{OUTPUT_DIR}/{event_id}.json"
+    )
 
 
 async def scrape_unikon_events(url: str):
@@ -136,7 +145,7 @@ async def scrape_unikon_event(url: str):
 
     # endregion
 
-    await save_event_details_to_json(event_details)
+    await save_event_details(event_details)
 
 
 async def scrape_brite_events(url: str):
@@ -257,7 +266,7 @@ async def scrape_crossweb_event(url: str):
     event_details["source"] = url
     # endregion
 
-    await save_event_details_to_json(event_details)
+    await save_event_details(event_details)
 
 
 async def main():
@@ -301,7 +310,9 @@ if __name__ == "__main__":
 
     if last_update_timestamp is None or datetime.now() - last_update_timestamp > timedelta(hours=12):
         OUTPUT_DIR = os.getenv("SCRAPING_OUTPUT_DIR")
+        API_KEY = os.getenv("OPENAI_API_KEY")
         clear_output_dir()
+        vector_storage = create_new_vector_storage(API_KEY)
         URLS: List[str] = os.getenv("SCRAPING_URLS").split(",")
         visited_urls = set()
         HEADERS = {
@@ -314,3 +325,5 @@ if __name__ == "__main__":
             f.write(datetime.now().strftime("%d-%m-%Y %H:%M"))
     else:
         print("Last update was less than 12 hours ago. Skipping scraping.")
+
+    subprocess.Popen(["streamlit", "run", "../frontend/main.py"])
