@@ -22,7 +22,7 @@ load_dotenv()
 
 @backoff.on_exception(
     backoff.expo,
-    (asyncio.TimeoutError, aiohttp.ClientError, aiohttp.ClientConnectorError, ConnectionRefusedError, AssertionError),
+    (asyncio.TimeoutError, aiohttp.ClientError, aiohttp.ClientConnectorError, aiohttp.ClientConnectorDNSError, ConnectionRefusedError, AssertionError),
     max_tries=5,
     jitter=backoff.full_jitter,
 )
@@ -162,19 +162,77 @@ async def scrape_brite_events(url: str):
             break
 
     print(f"Found {len(event_urls)} events on Eventbrite - {url.split('/')[-2]}")
-    print(event_urls)
-
-    base_url = "https://eventbrite.com"
 
     tasks = []
     for event_url in event_urls:
-        tasks.append(asyncio.create_task(scrape_brite_event(base_url + event_url)))
+        tasks.append(asyncio.create_task(scrape_brite_event(event_url)))
 
     await asyncio.gather(*tasks)
 
 
 async def scrape_brite_event(url: str):
-    pass
+    event_soup: BeautifulSoup = await get_soup_from_url(url)
+    event_details: dict[str] = {}
+    # region Extracting event details
+
+    # Extracting event title
+    event_title_tag: Tag = event_soup.find("h1", class_="event-title")
+    event_title = event_title_tag.text.strip() if event_title_tag else "N/A"
+    event_details["event_title"] = event_title
+
+    # Extracting event summary
+    event_summary_tag: Tag = event_soup.find("p", class_="summary")
+    event_summary = event_summary_tag.text.strip() if event_summary_tag else "N/A"
+    event_details["event_summary"] = event_summary
+
+    # Extracting event date
+    event_date_tag: Tag = event_soup.find("div", attrs={"data-testid": "display-date-container"})
+    event_date = event_date_tag.text.strip() if event_date_tag else "N/A"
+    event_details["event_date"] = event_date
+
+    # Extracting event location
+    event_location_tag: Tag = event_soup.find("div", class_="location-info__address")
+    event_location = event_location_tag.text.strip() if event_location_tag else "N/A"
+
+    # Remove button text
+    if event_location_tag:
+        button = event_location_tag.find("button")
+        if button:
+            button_text = button.text.strip()
+            event_location = event_location.replace(button_text, '').strip()
+    event_details["event_location"] = event_location
+
+    # Extracting event fee
+    event_fee_tag: Tag = event_soup.find("div", class_="conversion-bar__panel-info")
+    event_fee = event_fee_tag.text.strip() if event_fee_tag else "N/A"
+    event_fee = re.sub(r'(?<=zł)\s*', " ", event_fee)
+    event_fee = re.sub(r'zł\s*(\d+)', r'\1 zł', event_fee)
+    event_details["event_fee"] = event_fee
+
+    # Extracting event refund policy
+    event_refund_section: Tag = event_soup.find("section", attrs={"aria-labelledby": "refund-policy-heading"})
+    event_refund_div: Tag = event_refund_section.find("div", class_=None) if event_refund_section else None
+    event_refund_policy = event_refund_div.text.strip() if event_refund_div else "N/A"
+    event_details["event_refund_policy"] = event_refund_policy
+
+    # Extracting event organizer
+    event_organizer_tag: Tag = event_soup.find("a", class_="descriptive-organizer-info-mobile__name-link")
+    event_organizer = event_organizer_tag.text.strip() if event_organizer_tag else "N/A"
+    event_organizer_profile = event_organizer_tag["href"].strip() if event_organizer_tag else "N/A"
+    event_details["event_organizer"] = event_organizer
+    event_details["event_organizer_profile"] = event_organizer_profile
+
+    # Extracting event description
+    event_description_tag: Tag = event_soup.find("div", class_="event-description")
+    event_description = event_description_tag.text.strip() if event_description_tag else "N/A"
+    event_details["event_description"] = event_description
+
+    # Setting event source
+    event_details["source"] = url
+
+    # endregion
+
+    await save_event_details(event_details)
 
 
 async def scrape_crossweb_events(url: str):
@@ -299,12 +357,12 @@ async def main():
 
     tasks = []
     for url in URLS:
-        if "unikonferencje" in url:
-            tasks.append(asyncio.create_task(scrape_unikon_events(url)))
-        elif "eventbrite" in url:
+        # if "unikonferencje" in url:
+        #    tasks.append(asyncio.create_task(scrape_unikon_events(url)))
+        if "eventbrite" in url:
             tasks.append(asyncio.create_task(scrape_brite_events(url)))
-        elif "crossweb" in url:
-            tasks.append(asyncio.create_task(scrape_crossweb_events(url)))
+        # elif "crossweb" in url:
+        #    tasks.append(asyncio.create_task(scrape_crossweb_events(url)))
 
     print("Scraping started")
     await asyncio.gather(*tasks)
