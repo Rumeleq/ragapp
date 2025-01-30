@@ -90,27 +90,10 @@ async def generate_response(user_query: str) -> str:
         knowledge=knowledge, conversation=st.session_state.conversation
     )
 
-    response = st.session_state.chat_model.invoke(prompt)
+    response = st.session_state.chat_model.stream(prompt)
 
-    st.session_state.conversation.append(response)
     print("Generated prompt: ", prompt)
-    print("\n\n\nResponse: ", response)
-    return response.content.strip()
-
-
-def stream_response(response: str):
-    """
-    Splits the response string into words and yields each word followed by a space.
-
-    Args:
-        response (str): The response string to be streamed.
-
-    Yields:
-        str: Each word in the response string followed by a space.
-    """
-    for word in response.split():
-        yield word + " "
-        time.sleep(0.02)
+    return response
 
 
 def display_conversation():
@@ -137,13 +120,12 @@ async def display_response(user_prompt: str):
     with st.chat_message("assistant"):
         with st.spinner("Thinking... "):
             # Operations performend while the spinner is displayed
-            response = await generate_response(user_prompt)
+            response_stream = await generate_response(user_prompt)
 
-        # Write out the response with a cool typing effect
-        st.write_stream(stream_response(response))
-
-        # Add bot response to session state
-        st.session_state.bot_responses.append(response)
+        full_response = st.write_stream(response_stream)
+        print("\n\n\nResponse: ", full_response)
+        st.session_state.conversation.append(AIMessage(content=full_response))
+        st.session_state.bot_responses.append(full_response)
 
 
 if "initialized" not in st.session_state:
