@@ -22,7 +22,7 @@ load_dotenv()
 
 @backoff.on_exception(
     backoff.expo,
-    (asyncio.TimeoutError, aiohttp.ClientError, aiohttp.ClientConnectorError, ConnectionRefusedError),
+    (asyncio.TimeoutError, aiohttp.ClientError, aiohttp.ClientConnectorError, ConnectionRefusedError, AssertionError),
     max_tries=5,
     jitter=backoff.full_jitter,
 )
@@ -149,6 +149,31 @@ async def scrape_unikon_event(url: str):
 
 
 async def scrape_brite_events(url: str):
+    event_urls: List[str] = []
+    page_index = 1
+    while True:
+        event_list_soup: BeautifulSoup = await get_soup_from_url(f"{url[:-1]}{page_index}")
+        event_urls.extend(anchor["href"] for anchor in event_list_soup.find_all("a", class_="event-card-link"))
+        event_urls = list(set(event_urls))  # Remove duplicates
+        page_index += 1
+
+        next_page_button: Tag = event_list_soup.find("button", aria_label="Next Page")
+        if next_page_button is None:
+            break
+
+    print(f"Found {len(event_urls)} events on Eventbrite - {url.split('/')[-2]}")
+    print(event_urls)
+
+    base_url = "https://eventbrite.com"
+
+    tasks = []
+    for event_url in event_urls:
+        tasks.append(asyncio.create_task(scrape_brite_event(base_url + event_url)))
+
+    await asyncio.gather(*tasks)
+
+
+async def scrape_brite_event(url: str):
     pass
 
 
