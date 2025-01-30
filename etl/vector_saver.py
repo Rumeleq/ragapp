@@ -29,6 +29,8 @@ def create_new_vector_storage() -> Chroma:
 
     if os.path.exists(CHROMA_PATH):
         for item in os.listdir(CHROMA_PATH):
+            if item == ".gitignore":  # must be removed at the end of application development
+                continue
             item_path = os.path.join(CHROMA_PATH, item)
             if os.path.isfile(item_path) or os.path.islink(item_path):
                 os.unlink(item_path)
