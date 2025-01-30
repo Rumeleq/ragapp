@@ -364,12 +364,12 @@ async def main():
 
     tasks = []
     for url in URLS:
-        # if "unikonferencje" in url:
-        #    tasks.append(asyncio.create_task(scrape_unikon_events(url)))
+        if "unikonferencje" in url:
+            tasks.append(asyncio.create_task(scrape_unikon_events(url)))
         if "eventbrite" in url:
             tasks.append(asyncio.create_task(scrape_brite_events(url)))
-        # elif "crossweb" in url:
-        #    tasks.append(asyncio.create_task(scrape_crossweb_events(url)))
+        elif "crossweb" in url:
+            tasks.append(asyncio.create_task(scrape_crossweb_events(url)))
 
     print("Scraping started")
     await asyncio.gather(*tasks)
