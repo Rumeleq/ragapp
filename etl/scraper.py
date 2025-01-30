@@ -22,7 +22,14 @@ load_dotenv()
 
 @backoff.on_exception(
     backoff.expo,
-    (asyncio.TimeoutError, aiohttp.ClientError, aiohttp.ClientConnectorError, aiohttp.ClientConnectorDNSError, ConnectionRefusedError, AssertionError),
+    (
+        asyncio.TimeoutError,
+        aiohttp.ClientError,
+        aiohttp.ClientConnectorError,
+        aiohttp.ClientConnectorDNSError,
+        ConnectionRefusedError,
+        AssertionError,
+    ),
     max_tries=5,
     jitter=backoff.full_jitter,
 )
@@ -199,14 +206,14 @@ async def scrape_brite_event(url: str):
         button = event_location_tag.find("button")
         if button:
             button_text = button.text.strip()
-            event_location = event_location.replace(button_text, '').strip()
+            event_location = event_location.replace(button_text, "").strip()
     event_details["event_location"] = event_location
 
     # Extracting event fee
     event_fee_tag: Tag = event_soup.find("div", class_="conversion-bar__panel-info")
     event_fee = event_fee_tag.text.strip() if event_fee_tag else "N/A"
-    event_fee = re.sub(r'(?<=zł)\s*', " ", event_fee)
-    event_fee = re.sub(r'zł\s*(\d+)', r'\1 zł', event_fee)
+    event_fee = re.sub(r"(?<=zł)\s*", " ", event_fee)
+    event_fee = re.sub(r"zł\s*(\d+)", r"\1 zł", event_fee)
     event_details["event_fee"] = event_fee
 
     # Extracting event refund policy
