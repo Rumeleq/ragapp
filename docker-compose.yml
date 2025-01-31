@@ -1,0 +1,23 @@
+version: "3"
+services:
+  chromadb:
+    image: chromadb/chroma
+    environment:
+      - ANONYMIZED_TELEMETRY=False
+      - IS_PERSISTENT=TRUE
+      - PERSIST_DIRECTORY=${PERSIST_DIRECTORY:-/chroma/chroma}
+    volumes:
+      - ./chroma:/chroma/chroma
+    ports:
+      - "127.0.0.1:9000:8000"
+    networks:
+      - rag-net
+    healthcheck:
+      test: [ "CMD", "/bin/bash", "-c", "cat < /dev/null > /dev/tcp/localhost/8001" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+
+networks:
+  rag-net:
