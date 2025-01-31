@@ -5,7 +5,12 @@ LABEL authors="wiktor"
 WORKDIR /app
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    software-properties-common \
+    git \
+    && rm -rf /var/lib/apt/lists/*
 RUN pip install setuptools
 
 COPY requirements.txt .
