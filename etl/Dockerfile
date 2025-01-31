@@ -19,6 +19,6 @@ COPY requirements.txt .
 RUN pip3 install --upgrade pip setuptools wheel
 RUN pip3 install -r requirements.txt
 
-COPY scraper.py vector_saver.py ./
+COPY scraper.py vector_saver.py .env ./
 
 CMD ["python3", "scraper.py"]
