@@ -19,9 +19,29 @@ services:
       timeout: 10s
       retries: 3
 
+  etl:
+    build: ./etl
+    networks:
+      - rag-net
+    volumes:
+      - etl-data
+    depends_on:
+      chromadb:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "127.0.0.1:8501:8501"
+    networks:
+      - rag-net
+    depends_on:
+      - etl
+
 volumes:
   chroma-data:
     driver: local
+  etl-data:
 
 networks:
   rag-net:
