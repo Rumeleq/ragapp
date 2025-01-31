@@ -8,7 +8,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y
 RUN pip install setuptools
 
-COPY ../requirements.txt .
+COPY requirements.txt .
 
 # Install python dependencies
 RUN pip install --upgrade pip setuptools wheel
