@@ -14,8 +14,8 @@ services:
     networks:
       - rag-net
     healthcheck:
-      test: [ "CMD", "/bin/bash", "-c", "cat < /dev/null > /dev/tcp/localhost/8001" ]
-      interval: 30s
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 5s
       timeout: 10s
       retries: 3
 
@@ -24,7 +24,7 @@ services:
     networks:
       - rag-net
     volumes:
-      - etl-data
+      - etl-data:/app/data
     depends_on:
       chromadb:
         condition: service_healthy
