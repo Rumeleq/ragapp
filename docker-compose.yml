@@ -7,7 +7,8 @@ services:
       - IS_PERSISTENT=TRUE
       - PERSIST_DIRECTORY=${PERSIST_DIRECTORY:-/chroma/chroma}
     volumes:
-      - ./chroma:/chroma/chroma
+#      - /c//Users/wikto/PycharmProjects/ragapp/chroma/:/chroma/chroma
+      - chroma-data:/chroma/chroma
     ports:
       - "127.0.0.1:9000:8000"
     networks:
@@ -18,6 +19,9 @@ services:
       timeout: 10s
       retries: 3
 
+volumes:
+  chroma-data:
+    driver: local
 
 networks:
   rag-net:
