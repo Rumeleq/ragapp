@@ -22,4 +22,4 @@ RUN pip install -r requirements.txt
 COPY . .
 
 EXPOSE 8501
-CMD ["streamlit", "run", "main.py"]
+CMD ["streamlit", "run", "streamlit_app.py", "--server.port=8501", "--server.address=0.0.0.0"]
