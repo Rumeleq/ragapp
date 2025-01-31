@@ -1,4 +1,4 @@
-FROM python:3.13
+FROM python:3.13-slim
 LABEL authors="wiktor"
 
 # Select container's working directory
