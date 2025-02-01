@@ -10,7 +10,7 @@ Created using Python
 * Status
 * Room for improvement
 * Acknowledgements
-* Contact
+* Our team
 
 ## Introduction
 
@@ -63,3 +63,7 @@ Correctly set up and working app looks like this:
 The project is: _in progress_
 
 It is in fact almost done, however it lacks documentation, integration with docker and improvement of internal prompts to AI.
+
+## Acknowledgements
+
+## Our team
