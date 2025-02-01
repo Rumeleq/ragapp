@@ -1,7 +1,7 @@
 version: "3"
 services:
   chromadb:
-    image: chromadb/chroma
+    image: chromadb/chroma:0.6.4.dev119
     environment:
       - ANONYMIZED_TELEMETRY=False
       - IS_PERSISTENT=TRUE
@@ -15,7 +15,7 @@ services:
       - rag-net
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
-      interval: 30s
+      interval: 5s
       timeout: 10s
       retries: 3
 
@@ -25,6 +25,7 @@ services:
       - rag-net
     volumes:
       - etl-data:/app/data
+      - chroma-data:/chroma
     depends_on:
       chromadb:
         condition: service_healthy
@@ -35,6 +36,9 @@ services:
       - "127.0.0.1:8501:8501"
     networks:
       - rag-net
+    volumes:
+      - etl-data:/app/data
+      - chroma-data:/chroma
     depends_on:
       etl:
         condition: service_completed_successfully
