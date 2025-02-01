@@ -172,3 +172,6 @@ cython_debug/
 /.idea
 etl/last_update_timestamp.txt
 /etl/data
+/etl/etl-data
+chroma/
+c.py
