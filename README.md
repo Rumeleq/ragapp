@@ -1,5 +1,5 @@
 # GrepEvent - Retrieval-Augmented Generation
-Chat-bot app, where the user asks AI about tech events taking place in Poland.
+Chatbot app, where the user asks AI about tech events taking place in Poland.
 Created using Python
 
 ## Table of contents
@@ -78,6 +78,6 @@ People and their roles:
 
 [Rumeleq](https://github.com/Rumeleq) - repository owner, responsible for etl scraper
 
-[wiktorKycia](https://github.com/wiktorKycia) - repository maintainer, responsible for frontend - displaying data on website, also responsible for dockerization
+[wiktorKycia](https://github.com/wiktorKycia) - repository maintainer, responsible for frontend - displaying data on a website, also responsible for dockerization
 
 [JanTopolewski](https://github.com/JanTopolewski) - responsible for data flow, connecting to chroma database, prompt templates
