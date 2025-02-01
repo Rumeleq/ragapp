@@ -29,3 +29,8 @@ that we were unfamiliar with at the beginning.
   - and many other less important modules listed [here](./requirements.txt) 
 - [Docker](https://docs.docker.com/) _version: 27.4_
 - [Chroma](https://hub.docker.com/r/chromadb/chroma/tags) docker image _tag: 0.6.4.dev119_
+
+## Screenshots
+
+Correctly set up and working app looks like this:
+![app in use](./images/use-of-app.jpg)
