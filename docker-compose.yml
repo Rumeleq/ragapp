@@ -25,6 +25,7 @@ services:
       - rag-net
     volumes:
       - etl-data:/app/data
+      - chroma-data:/chroma
     depends_on:
       chromadb:
         condition: service_healthy
@@ -35,6 +36,8 @@ services:
       - "127.0.0.1:8501:8501"
     networks:
       - rag-net
+    volumes:
+      - chroma-data:/chroma
     depends_on:
       etl:
         condition: service_completed_successfully
