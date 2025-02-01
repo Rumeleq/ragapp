@@ -15,7 +15,7 @@ services:
       - rag-net
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
-      interval: 5s
+      interval: 30s
       timeout: 10s
       retries: 3
 
