@@ -15,7 +15,7 @@ services:
       - rag-net
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
-      interval: 30s
+      interval: 5s
       timeout: 10s
       retries: 3
 
@@ -37,6 +37,7 @@ services:
     networks:
       - rag-net
     volumes:
+      - etl-data:/app/data
       - chroma-data:/chroma
     depends_on:
       etl:
