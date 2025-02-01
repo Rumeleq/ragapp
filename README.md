@@ -68,8 +68,8 @@ It is in fact almost done, however it lacks documentation, integration with dock
 ## Our team
 People and their roles:
 
-@Rumeleq - repository owner, responsible for etl scraper
+[Rumeleq](https://github.com/Rumeleq) - repository owner, responsible for etl scraper
 
-@wiktorKycia - repository maintainer, responsible for frontend - displaying data on website, also responsible for dockerization
+[wiktorKycia](https://github.com/wiktorKycia) - repository maintainer, responsible for frontend - displaying data on website, also responsible for dockerization
 
-@JanTopolewski - responsible for data flow, connecting to chroma database, prompt templates
+[JanTopolewski](https://github.com/JanTopolewski) - responsible for data flow, connecting to chroma database, prompt templates
