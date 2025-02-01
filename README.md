@@ -1,2 +1,2 @@
-## GrepEvent - Retrieval-Augmented Generation
+# GrepEvent - Retrieval-Augmented Generation
 Recruitment task - RAG application
