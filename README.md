@@ -3,14 +3,13 @@ Chat-bot app, where the user asks AI about tech events taking place in Poland.
 Created using Python
 
 ## Table of contents
-* Introduction
-* Technologies
-* Setup
-* Screenshots
-* Status
-* Room for improvement
-* Acknowledgements
-* Our team
+* [Introduction](#introduction)
+* [Technologies](#technologies)
+* [Setup](#setup)
+* [Screenshots](#screenshots)
+* [Status](#status)
+* [Acknowledgements](#acknowledgements)
+* [Our team](#our-team)
 
 ## Introduction
 
