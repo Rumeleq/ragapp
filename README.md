@@ -34,3 +34,12 @@ that we were unfamiliar with at the beginning.
 
 Correctly set up and working app looks like this:
 ![app in use](./images/use-of-app.jpg)
+
+## Setup
+
+In order to run this app, docker is required. 
+
+If you don't have docker installed on your computer yet, you can install it [here](https://docs.docker.com/get-started/get-docker/)
+
+Once you have docker installed, follow these guidelines:
+1. 
