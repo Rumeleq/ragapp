@@ -61,12 +61,7 @@ async def save_event_details(event_details: dict[str]):
     async with aiofiles.open(f"{OUTPUT_DIR}/{event_id}.json", "w", encoding="utf-8") as f:
         await f.write(json.dumps(event_details, indent=4, ensure_ascii=False))
 
-    filtered_event_details = {
-        key: value for key, value in event_details.items() if key != "event_description" and value != "N/A"
-    }
-    await add_data_to_vector_storage(
-        vector_storage, filtered_event_details, event_details["event_description"], f"{OUTPUT_DIR}/{event_id}.json"
-    )
+    await add_data_to_vector_storage(vector_storage, event_details, f"{OUTPUT_DIR}/{event_id}.json")
 
 
 async def scrape_unikon_events(url: str):

@@ -70,7 +70,7 @@ async def get_knowledge_from_vector_storage() -> str:
             for doc, score in results[
                 response_json["results_shown"] : (response_json["number_of_results"] + response_json["results_shown"])
             ]:
-                file_path = doc.metadata.get("location", "Unkown")
+                file_path = doc.metadata.get("filename", "Unknown")
                 if file_path != "Unknown" and file_path not in file_paths:
                     file_paths.append(file_path)
             results = await asyncio.gather(*[read_json_file(path) for path in file_paths])
