@@ -1,2 +1,3 @@
 # GrepEvent - Retrieval-Augmented Generation
-Recruitment task - RAG application
+Chat-bot app, where the user asks AI about tech events taking place in Poland.
+Created using Python
