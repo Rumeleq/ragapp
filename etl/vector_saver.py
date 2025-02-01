@@ -3,7 +3,7 @@ import os
 import shutil
 
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
 
 
@@ -17,11 +17,12 @@ async def add_data_to_vector_storage(vector_storage: Chroma, main_information: d
             chunks = text_splitter.split_text(description)
         else:
             chunks = []
+
         chunks.append(json.dumps(main_information, ensure_ascii=False))
 
         await vector_storage.aadd_texts(texts=chunks, metadatas=[{"location": file_path}] * len(chunks))
     except Exception as e:
-        print(f"Error while embedding {file_path} or adding to vector_storage: {e}")
+        print(f"Error while adding {file_path} to vector_storage: {e}")
 
 
 def create_new_vector_storage() -> Chroma:
@@ -40,7 +41,9 @@ def create_new_vector_storage() -> Chroma:
     else:
         print(f"Directory {CHROMA_PATH} does not exist")
 
-    embedding_function = OpenAIEmbeddings(model="text-embedding-3-small")
+    embedding_function = OpenAIEmbeddings(
+        model="text-embedding-3-small", max_retries=5, request_timeout=8, retry_max_seconds=4, retry_min_seconds=1
+    )
 
     vector_storage = Chroma(
         collection_name="PolandEventInfo", persist_directory=CHROMA_PATH, embedding_function=embedding_function

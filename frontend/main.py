@@ -1,13 +1,11 @@
 import asyncio
 import json
-import os
-import time
 
 import aiofiles
 import streamlit as st
 from dotenv import load_dotenv
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder, SystemMessagePromptTemplate
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from prompts import main_system_message_template, use_search_system_message_template
@@ -81,7 +79,7 @@ async def get_knowledge_from_vector_storage() -> str:
             return full_knowledge
 
 
-async def generate_response(user_query: str) -> str:
+async def generate_response(user_query: str):
     st.session_state.conversation.append(HumanMessage(content=user_query))
 
     knowledge = await get_knowledge_from_vector_storage()
@@ -133,7 +131,7 @@ if "initialized" not in st.session_state:
 
     st.session_state.CHROMA_PATH = "../chroma"
 
-    st.session_state.chat_model = ChatOpenAI(model="gpt-4o-mini", temperature=0.2)
+    st.session_state.chat_model = ChatOpenAI(model_name="gpt-4o-mini", temperature=0.2)
 
     st.session_state.use_search_prompt = ChatPromptTemplate.from_messages(
         [
