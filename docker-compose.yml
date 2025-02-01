@@ -36,7 +36,8 @@ services:
     networks:
       - rag-net
     depends_on:
-      - etl
+      etl:
+        condition: service_completed_successfully
 
 volumes:
   chroma-data:
