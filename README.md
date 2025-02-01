@@ -71,8 +71,11 @@ Many thanks to:
 - [Programator](https://www.youtube.com/watch?v=wFcAa28kjVQ&list=PLkcy-k498-V5AmftzfqinpMF2LFqSHK5n) for providing strong understanding of Docker
 - [Docker documentation](https://docs.docker.com/manuals/) for vital details about creating `docker-compose.yml` file
 - [Streamlit documentation](https://docs.streamlit.io/) for everything about streamlit library
+- [Langchain_Chroma documentation](https://api.python.langchain.com/en/latest/vectorstores/langchain_chroma.vectorstores.Chroma.html) for information about langchain_chroma library
+- [Langchain_OpenAI documentation](https://api.python.langchain.com/en/latest/openai_api_reference.html) for information about langchain_openai library
 - [ChromaDB Cookbook](https://cookbook.chromadb.dev/running/health-checks/) for configuration of ChromaDB with Docker
 - [Bulldogjob](https://bulldogjob.com/readme/how-to-write-a-good-readme-for-your-github-project) for providing an article on how to write README properly
+- [pixegami](https://www.youtube.com/watch?v=tcqEUSNCn8I) for providing a comprehensive guide on RAG and the logic behind it
 
 ## Our team
 People and their roles:
