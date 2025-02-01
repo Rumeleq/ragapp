@@ -127,30 +127,34 @@ async def display_response(user_prompt: str):
 
 
 if "initialized" not in st.session_state:
-    st.session_state.initialized = True
+    try:
+        st.session_state.initialized = True
 
-    st.session_state.CHROMA_PATH = "../chroma"
+        st.session_state.CHROMA_PATH = "../chroma"
 
-    st.session_state.chat_model = ChatOpenAI(model_name="gpt-4o-mini", temperature=0.2)
+        st.session_state.chat_model = ChatOpenAI(model_name="gpt-4o-mini", temperature=0.2)
 
-    st.session_state.use_search_prompt = ChatPromptTemplate.from_messages(
-        [
-            SystemMessagePromptTemplate.from_template(use_search_system_message_template),
-            MessagesPlaceholder(variable_name="conversation"),
-        ]
-    )
+        st.session_state.use_search_prompt = ChatPromptTemplate.from_messages(
+            [
+                SystemMessagePromptTemplate.from_template(use_search_system_message_template),
+                MessagesPlaceholder(variable_name="conversation"),
+            ]
+        )
 
-    st.session_state.dynamic_main_prompt = ChatPromptTemplate.from_messages(
-        [
-            SystemMessagePromptTemplate.from_template(main_system_message_template),
-            MessagesPlaceholder(variable_name="conversation"),
-        ]
-    )
+        st.session_state.dynamic_main_prompt = ChatPromptTemplate.from_messages(
+            [
+                SystemMessagePromptTemplate.from_template(main_system_message_template),
+                MessagesPlaceholder(variable_name="conversation"),
+            ]
+        )
 
-    st.session_state.conversation = []
+        st.session_state.conversation = []
 
-    st.session_state.search_decisions_memory = ""
-    st.session_state.vector_storage = connect_to_vector_storage("PolandEventInfo", st.session_state.CHROMA_PATH)
+        st.session_state.search_decisions_memory = ""
+        st.session_state.vector_storage = connect_to_vector_storage("PolandEventInfo", st.session_state.CHROMA_PATH)
+    except Exception as e:
+        st.error(f"Failed to initialize application: {e}")
+        st.stop()
 
 # Get user input from chat input
 user_prompt = st.chat_input("Ask a question about tech meetups in Poland")

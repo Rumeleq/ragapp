@@ -86,7 +86,7 @@ def create_new_vector_storage() -> Chroma:
 
         # Embedding function used to create vectors
         embedding_function = OpenAIEmbeddings(
-            model="text-embedding-3-small", max_retries=5, request_timeout=8, retry_max_seconds=4, retry_min_seconds=1
+            model="text-embedding-3-small", max_retries=5, request_timeout=15, retry_max_seconds=4, retry_min_seconds=1
         )
 
         # Create a new vector storage object
