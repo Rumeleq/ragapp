@@ -72,6 +72,7 @@ Many thanks to:
 - [Docker documentation](https://docs.docker.com/manuals/) for vital details about creating `docker-compose.yml` file
 - [Streamlit documentation](https://docs.streamlit.io/) for everything about streamlit library
 - [ChromaDB Cookbook](https://cookbook.chromadb.dev/running/health-checks/) for configuration of ChromaDB with Docker
+- [Bulldogjob](https://bulldogjob.com/readme/how-to-write-a-good-readme-for-your-github-project) for providing an article on how to write README properly
 
 ## Our team
 People and their roles:
