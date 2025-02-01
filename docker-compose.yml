@@ -7,7 +7,6 @@ services:
       - IS_PERSISTENT=TRUE
       - PERSIST_DIRECTORY=${PERSIST_DIRECTORY:-/chroma/chroma}
     volumes:
-#      - /c//Users/wikto/PycharmProjects/ragapp/chroma/:/chroma/chroma
       - chroma-data:/chroma/chroma
     ports:
       - "127.0.0.1:9000:8000"
