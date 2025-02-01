@@ -8,8 +8,9 @@ services:
       - PERSIST_DIRECTORY=${PERSIST_DIRECTORY:-/chroma/chroma}
     volumes:
       - chroma-data:/chroma/chroma
-    ports:
-      - "8000"
+# Uncomment this if the port does not work
+#    ports:
+#      - "8000"
     networks:
       - rag-net
     healthcheck:
