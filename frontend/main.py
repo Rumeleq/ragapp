@@ -18,7 +18,7 @@ load_dotenv()
 st.set_page_config(page_title="Chat about Polish tech events!", page_icon="💻")
 
 # Elements displayed above the chat
-st.title("RAG app")
+st.title("GrepEvent")
 st.write("Welcome to the conversation with a chatbot that will tell you about tech meetups in Poland!")
 
 # Initialize session state for user prompts and bot responses
