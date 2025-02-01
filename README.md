@@ -12,3 +12,11 @@ Created using Python
 * Room for improvement
 * Acknowledgements
 * Contact
+
+## Introduction
+
+This is a project that was assigned to us by a [datarabbit.ai](https://www.datarabbit.ai/) company as a recruitment task.
+We had to complete it in order to do an internship there.
+
+This task was also an opportunity for us to learn new technologies, 
+that we were unfamiliar with at the beginning.
