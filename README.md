@@ -57,3 +57,9 @@ Once you have docker installed, follow these guidelines:
 
 Correctly set up and working app looks like this:
 ![app in use](./images/use-of-app.jpg)
+
+## Status
+
+The project is: _in progress_
+
+It is in fact almost done, however it lacks documentation, integration with docker and improvement of internal prompts to AI.
