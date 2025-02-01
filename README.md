@@ -5,8 +5,8 @@ Created using Python
 ## Table of contents
 * Introduction
 * Technologies
-* Screenshots
 * Setup
+* Screenshots
 * Status
 * Room for improvement
 * Acknowledgements
@@ -30,11 +30,6 @@ that we were unfamiliar with at the beginning.
 - [Docker](https://docs.docker.com/) _version: 27.4_
 - [Chroma](https://hub.docker.com/r/chromadb/chroma/tags) docker image _tag: 0.6.4.dev119_
 
-## Screenshots
-
-Correctly set up and working app looks like this:
-![app in use](./images/use-of-app.jpg)
-
 ## Setup
 
 In order to run this app, docker is required. 
@@ -57,3 +52,8 @@ Once you have docker installed, follow these guidelines:
       4. after the `scraper.py` finishes successfully, frontend container should run and expose the port 8501
    3. The whole process could take **even a few minutes**, especially when running for the first time
 3. If you see in docker logs that frontend container is starting to run, you can [visit the webapp in browser](http://localhost:8501) 
+
+## Screenshots
+
+Correctly set up and working app looks like this:
+![app in use](./images/use-of-app.jpg)
