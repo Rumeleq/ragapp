@@ -65,6 +65,14 @@ It is in fact almost done, however it lacks documentation, integration with dock
 
 ## Acknowledgements
 
+Special thanks to [datarabbit](https://www.datarabbit.ai/) team for giving us this interesting challenge
+
+Many thanks to:
+- [Programator](https://www.youtube.com/watch?v=wFcAa28kjVQ&list=PLkcy-k498-V5AmftzfqinpMF2LFqSHK5n) for providing strong understanding of Docker
+- [Docker documentation](https://docs.docker.com/manuals/) for vital details about creating `docker-compose.yml` file
+- [Streamlit documentation](https://docs.streamlit.io/) for everything about streamlit library
+- [ChromaDB Cookbook](https://cookbook.chromadb.dev/running/health-checks/) for configuration of ChromaDB with Docker
+
 ## Our team
 People and their roles:
 
