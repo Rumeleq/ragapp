@@ -1,0 +1,48 @@
+version: "3"
+services:
+  chromadb:
+    image: chromadb/chroma
+    environment:
+      - ANONYMIZED_TELEMETRY=False
+      - IS_PERSISTENT=TRUE
+      - PERSIST_DIRECTORY=${PERSIST_DIRECTORY:-/chroma/chroma}
+    volumes:
+      - chroma-data:/chroma/chroma
+# Uncomment this if the port does not work
+#    ports:
+#      - "8000"
+    networks:
+      - rag-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  etl:
+    build: ./etl
+    networks:
+      - rag-net
+    volumes:
+      - etl-data:/app/data
+    depends_on:
+      chromadb:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "127.0.0.1:8501:8501"
+    networks:
+      - rag-net
+    depends_on:
+      etl:
+        condition: service_completed_successfully
+
+volumes:
+  chroma-data:
+    driver: local
+  etl-data:
+
+networks:
+  rag-net:
