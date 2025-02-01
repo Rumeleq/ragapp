@@ -30,3 +30,8 @@ that we were unfamiliar with at the beginning.
   - and many other less important modules listed [here](./requirements.txt) 
 - [Docker](https://docs.docker.com/) _version: 27.4_
 - [Chroma](https://hub.docker.com/r/chromadb/chroma/tags) docker image _tag: 0.6.4.dev119_
+
+## Main feature
+
+Main and at the same time the only one feature of this app is talking with a chat-bot
+which has information about tech events, meet-ups and business conferences taking place in Poland.
