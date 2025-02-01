@@ -42,4 +42,18 @@ In order to run this app, docker is required.
 If you don't have docker installed on your computer yet, you can install it [here](https://docs.docker.com/get-started/get-docker/)
 
 Once you have docker installed, follow these guidelines:
-1. 
+1. Clone the repo on your local machine 
+   1. You can do it by running this command in terminal:
+      1. ```git clone https://github.com/Rumeleq/ragapp.git```
+2. Make sure you are in the project's root folder and run the command:
+   1. ```docker-compose up```
+   2. By running the above command, docker should:
+      1. install the chromadb image (unless you have it already)
+      2. run etl container after the chroma's healthcheck
+      3. in etl container `scraper.py` script should scrape the data from websites:
+         1. [crossweb](https://crossweb.pl/)
+         2. [unikonferencje](https://unikonferencje.pl/)
+         3. [eventbritte](https://www.eventbrite.com/)
+      4. after the `scraper.py` finishes successfully, frontend container should run and expose the port 8501
+   3. The whole process could take **even a few minutes**, especially when running for the first time
+3. If you see in docker logs that frontend container is starting to run, you can [visit the webapp in browser](http://localhost:8501) 
