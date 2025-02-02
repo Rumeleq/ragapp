@@ -33,6 +33,11 @@ load_dotenv()
     jitter=backoff.full_jitter,
 )
 async def get_soup_from_url(url: str) -> BeautifulSoup:
+    """
+    Retrieves a BeautifulSoup object from a URL, handling potential character encoding issues.
+    :param url: URL to get the BeautifulSoup object from
+    :return: BeautifulSoup object of the response with fixed characters
+    """
     await asyncio.sleep(random.uniform(1, 3))
     async with aiohttp.ClientSession() as session:
         async with session.get(url, headers=HEADERS) as response:
@@ -49,7 +54,12 @@ async def get_soup_from_url(url: str) -> BeautifulSoup:
     return soup
 
 
-async def save_event_details(event_details: dict[str]):
+async def save_event_details(event_details: dict[str]) -> None:
+    """
+    Saves event details to a JSON file and adds them to the vector storage.
+    :param event_details: Dictionary with event details to save
+    :return: None
+    """
     print(f"Saving event: {event_details['event_title']}")
     if event_details["event_title"] == "N/A":
         print(event_details)
@@ -68,7 +78,13 @@ async def save_event_details(event_details: dict[str]):
     )
 
 
-async def scrape_unikon_events(url: str):
+async def scrape_unikon_events(url: str) -> None:
+    """
+    Scrapes events from a given subset of events on unikonferencje.pl as defined by the URLs in .env file.
+    Delegates scraping and saving of individual events to scrape_unikon_event().
+    :param url: URL to scrape event URLs from
+    :return: None
+    """
     event_urls: List[str] = []
     page_index = 1
     while True:
@@ -91,7 +107,14 @@ async def scrape_unikon_events(url: str):
     await asyncio.gather(*tasks)
 
 
-async def scrape_unikon_event(url: str):
+async def scrape_unikon_event(url: str) -> None:
+    """
+    Scrapes details of a single event from unikonferencje.pl. Later saves the details to a JSON file via
+    save_event_details().
+    :param url: URL of the event to scrape and save
+    :return: None
+    """
+    # Stops scraping for reappearing events which is specific to unikonferencje.pl
     if url in visited_urls:
         return
     visited_urls.add(url)
@@ -154,7 +177,13 @@ async def scrape_unikon_event(url: str):
     await save_event_details(event_details)
 
 
-async def scrape_brite_events(url: str):
+async def scrape_brite_events(url: str) -> None:
+    """
+    Scrapes events from a given subset of events on eventbrite.com as defined by the URLs in .env file.
+    Delegates scraping and saving of individual events to scrape_brite_event().
+    :param url: URL to scrape event URLs from
+    :return: None
+    """
     event_urls: List[str] = []
     page_index = 1
     while True:
@@ -176,7 +205,13 @@ async def scrape_brite_events(url: str):
     await asyncio.gather(*tasks)
 
 
-async def scrape_brite_event(url: str):
+async def scrape_brite_event(url: str) -> None:
+    """
+    Scrapes details of a single event from eventbrite.com. Later saves the details to a JSON file via
+    save_event_details().
+    :param url: URL of the event to scrape and save
+    :return: None
+    """
     event_soup: BeautifulSoup = await get_soup_from_url(url)
     event_details: dict[str] = {}
     # region Extracting event details
@@ -241,7 +276,13 @@ async def scrape_brite_event(url: str):
     await save_event_details(event_details)
 
 
-async def scrape_crossweb_events(url: str):
+async def scrape_crossweb_events(url: str) -> None:
+    """
+    Scrapes event URLs from crossweb.pl as defined by the URLs in .env file.
+    Delegates scraping and saving of individual events to scrape_crossweb_event().
+    :param url: URL to scrape event URLs from
+    :return: None
+    """
     event_list_soup: BeautifulSoup = await get_soup_from_url(url)
     event_urls: List[str] = [anchor["href"] for anchor in event_list_soup.find_all("a", class_="clearfix")]
     print(f"Found {len(event_urls)} events on Crossweb")
@@ -255,7 +296,13 @@ async def scrape_crossweb_events(url: str):
     await asyncio.gather(*tasks)
 
 
-async def scrape_crossweb_event(url: str):
+async def scrape_crossweb_event(url: str) -> None:
+    """
+    Scrapes details of a single event from crossweb.pl. Later saves the details to a JSON file via
+    save_event_details().
+    :param url: URL of the event to scrape and save
+    :return: None
+    """
     event_soup: BeautifulSoup = await get_soup_from_url(url)
     event_details: dict[str] = {}
 
