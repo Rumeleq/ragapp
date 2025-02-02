@@ -27,7 +27,9 @@ if "bot_responses" not in st.session_state:
 
 
 def connect_to_vector_storage(collection_name, file_path) -> Chroma:
-    embedding_function = OpenAIEmbeddings(model="text-embedding-3-small")
+    embedding_function = OpenAIEmbeddings(
+        model="text-embedding-3-small", max_retries=5, request_timeout=15, retry_max_seconds=4, retry_min_seconds=1
+    )
     vector_storage = Chroma(
         collection_name=collection_name, persist_directory=file_path, embedding_function=embedding_function
     )
@@ -36,62 +38,91 @@ def connect_to_vector_storage(collection_name, file_path) -> Chroma:
 
 
 async def read_json_file(file_path: str) -> str:
-    async with aiofiles.open(file_path, "r", encoding="utf-8") as file:
-        json_data = await file.read()
-    return json_data
+    try:
+        async with aiofiles.open(file_path, "r", encoding="utf-8") as file:
+            json_data = await file.read()
+        return json_data
+    except Exception as e:
+        print(f"Error while reading file {file_path}: {e}")
+        return "An error occurred while loading data about one of the events!"
 
 
 async def get_knowledge_from_vector_storage() -> str:
-    decisive_prompt = st.session_state.use_search_prompt.format_messages(
-        search_decisions_history=st.session_state.search_decisions_memory, conversation=st.session_state.conversation
-    )
-    print("Prompt used to make a decision: ", decisive_prompt)
-    response = (st.session_state.chat_model.invoke(decisive_prompt)).content.strip()
-    st.session_state.search_decisions_memory += f"- {response}\n"
-    print("Decision to search the database: ", response)
-    response_json = json.loads(response)
-    if response_json["number_of_results"] == 0:
-        return "No data is needed."
-    elif (
-        response_json["number_of_results"] < 0 or response_json["number_of_results"] > 14 or response_json["expression"] == ""
-    ):
-        print("There was an error in decision-making!")
-        return "An error occurred during data generation!"
-    else:
-        results = st.session_state.vector_storage.similarity_search_with_relevance_scores(
-            response_json["expression"], k=response_json["number_of_results"] + response_json["results_shown"]
+    try:
+        decisive_prompt = st.session_state.use_search_prompt.format_messages(
+            search_decisions_history=st.session_state.search_decisions_memory, conversation=st.session_state.conversation
         )
-        print("Results: ", results)
+        print("Prompt used to make a decision: ", decisive_prompt)
+        response = (st.session_state.chat_model.invoke(decisive_prompt)).content.strip()
+        st.session_state.search_decisions_memory += f"- {response}\n"
+        print("Decision to search the database: ", response)
+        response_json = json.loads(response)
 
-        if len(results) == 0:
-            return "No relevant data was found."
+        if (
+            not isinstance(response_json, dict)
+            or "number_of_results" not in response_json
+            or "expression" not in response_json
+            or "results_shown" not in response_json
+            or not isinstance(response_json["number_of_results"], int)
+            or not isinstance(response_json["results_shown"], int)
+            or response_json["number_of_results"] < 0
+            or response_json["results_shown"] < 0
+            or (response_json["number_of_results"] != 0 and response_json["expression"] == "")
+        ):
+            print("There was an error in decision-making!")
+            return "An error occurred during data loading!"
+        elif response_json["number_of_results"] == 0:
+            return "No data is needed."
         else:
-            file_paths = []
-            for doc, score in results[
-                response_json["results_shown"] : (response_json["number_of_results"] + response_json["results_shown"])
-            ]:
-                file_path = doc.metadata.get("filename", "Unknown")
-                if file_path != "Unknown" and file_path not in file_paths:
-                    file_paths.append(file_path)
-            results = await asyncio.gather(*[read_json_file(path) for path in file_paths])
+            if response_json["number_of_results"] > 14:
+                response_json["number_of_results"] = 14
 
-            full_knowledge = "\n".join(results)
-            return full_knowledge
+            results = st.session_state.vector_storage.similarity_search_with_relevance_scores(
+                response_json["expression"], k=response_json["number_of_results"] + response_json["results_shown"]
+            )
+            print("Results: ", results)
+
+            if len(results) == 0:
+                return "No relevant data was found."
+            else:
+                file_paths = []
+                for doc, score in results[
+                    response_json["results_shown"] : (response_json["number_of_results"] + response_json["results_shown"])
+                ]:
+                    file_path = doc.metadata.get("filename", "Unknown")
+                    if file_path != "Unknown" and file_path not in file_paths:
+                        file_paths.append(file_path)
+                results = await asyncio.gather(*[read_json_file(path) for path in file_paths])
+
+                full_knowledge = "\n".join(results)
+                return full_knowledge
+    except json.JSONDecodeError as e:
+        print(f"Error while parsing JSON response: {e}")
+        return "An error occurred while loading data!(No data may be needed)"
 
 
-async def generate_response(user_query: str):
-    st.session_state.conversation.append(HumanMessage(content=user_query))
+def generate_response(user_query: str):
+    try:
+        st.session_state.conversation.append(HumanMessage(content=user_query))
 
-    knowledge = await get_knowledge_from_vector_storage()
+        knowledge = asyncio.run(get_knowledge_from_vector_storage())
 
-    prompt = st.session_state.dynamic_main_prompt.format_messages(
-        knowledge=knowledge, conversation=st.session_state.conversation
-    )
+        prompt = st.session_state.dynamic_main_prompt.format_messages(
+            knowledge=knowledge, conversation=st.session_state.conversation
+        )
+        response = st.session_state.chat_model.stream(prompt)
 
-    response = st.session_state.chat_model.stream(prompt)
-
-    print("Generated prompt: ", prompt)
-    return response
+        for chunk in response:
+            finish_reason = chunk.response_metadata.get("finish_reason", None)
+            if finish_reason and finish_reason == "length":
+                st.warning(
+                    "The chatbot did not complete its speech due to the limited permitted length of speech. Try phrasing your request differently."
+                )
+            yield chunk
+    except ValueError as e:
+        st.error(f"Refresh the page to start a new conversation.")
+        st.stop()
+        yield "Refresh the page to start a new conversation."
 
 
 def display_conversation():
@@ -108,7 +139,7 @@ def display_conversation():
             st.chat_message("assistant").write(bot_response)
 
 
-async def display_response(user_prompt: str):
+def display_response(user_prompt: str):
     """
     Grabs the user's input and passes it to the chat-bot to generate a response, then the function displays it.
 
@@ -118,7 +149,7 @@ async def display_response(user_prompt: str):
     with st.chat_message("assistant"):
         with st.spinner("Thinking... "):
             # Operations performend while the spinner is displayed
-            response_stream = await generate_response(user_prompt)
+            response_stream = generate_response(user_prompt)
 
         full_response = st.write_stream(response_stream)
         print("\n\n\nResponse: ", full_response)
@@ -132,7 +163,9 @@ if "initialized" not in st.session_state:
 
         st.session_state.CHROMA_PATH = "../chroma"
 
-        st.session_state.chat_model = ChatOpenAI(model_name="gpt-4o-mini", temperature=0.2)
+        st.session_state.chat_model = ChatOpenAI(
+            model_name="gpt-4o-mini", max_retries=5, max_tokens=8000, request_timeout=40, temperature=0.2
+        )
 
         st.session_state.use_search_prompt = ChatPromptTemplate.from_messages(
             [
@@ -151,7 +184,10 @@ if "initialized" not in st.session_state:
         st.session_state.conversation = []
 
         st.session_state.search_decisions_memory = ""
+
         st.session_state.vector_storage = connect_to_vector_storage("PolandEventInfo", st.session_state.CHROMA_PATH)
+
+        st.session_state.conversation_limit_reached = False
     except Exception as e:
         st.error(f"Failed to initialize application: {e}")
         st.stop()
@@ -161,12 +197,21 @@ user_prompt = st.chat_input("Ask a question about tech meetups in Poland")
 
 # Check if user input is not empty
 if user_prompt:
-    # Display previous conversation
-    display_conversation()
+    try:
+        # Display previous conversation
+        display_conversation()
 
-    # Add user prompt to session state
-    st.chat_message("user").write(user_prompt)
-    st.session_state.user_prompts.append(user_prompt)
+        # Add user prompt to session state
+        st.chat_message("user").write(user_prompt)
+        st.session_state.user_prompts.append(user_prompt)
 
-    # Run asynchronous function to display response
-    asyncio.run(display_response(user_prompt))
+        # Run asynchronous function to display response
+        display_response(user_prompt)
+    except Exception as e:
+        if "context_length_exceeded" in str(e):
+            print("Context length exceeded.")
+            st.error(f"Conversation limit reached. Please refresh the page to start a new conversation.")
+        else:
+            print(f"An error occurred: {e}")
+            st.error(f"An error occurred. Please refresh the page to try starting a new conversation.")
+        st.stop()

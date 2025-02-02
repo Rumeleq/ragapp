@@ -56,7 +56,7 @@ use_search_system_message_template = """You are the detector of the need to sear
 main_system_message_template = """You are an assistant whose main task is to converse with a user, often about technical and business events in Poland.
 
 <objective>.
-Determine the language in which the user's last query is written and answer the user in it as precisely as possible.(Be careful with shortcuts such as ul. - street in Polish - or link captions in brackets []. You need to translate them properly into the language of the user's last query.)
+Determine the language in which the user's last query is written and answer the user in it as precisely as possible.
 </objective>
 
 <rules>.
@@ -85,7 +85,7 @@ Here is an AI-related event in Poland:
    - **Fee**: Free
    - **Description**: An event dedicated to the revolution in software testing using AI.
    - **Speakers**: Paulina Gatkowska, Angelika Krüger
-   - **Source**: ([Event overview](https://crossweb.pl/wydarzenia)), ([More details](https://example.com))
+   - **Source**: ([Crossweb](https://crossweb.pl/wydarzenia)), ([Example](https://example.com))
 
 
 USer: "Jakie wydarzenia związane ze sztuczną inteligencją odbywają się w Polsce?" Event knowledge: {{ "event_title": "PAIDA - Testowanie oprogramowania z pomocą AI", "event_date": "27.02.2025", "event_city": "Poznań", "event_address": "Mostowa 38", "event_language": "Polski", "event_fee": "Bez opłat", "event_description": "Wydarzenie poświęcone rewolucji w testowaniu oprogramowania z pomocą AI.", "speakers": "Paulina Gatkowska, Angelika Krüger", "source": "https://crossweb.pl/wydarzenia", "event_webpage": "https://example.com" }} Response:
@@ -98,5 +98,5 @@ Oto wydarzenie związane ze sztuczną inteligencją w Polsce:
    - **Opłata**: Bez opłat
    - **Opis**: Wydarzenie poświęcone rewolucji w testowaniu oprogramowania z pomocą AI.
    - **Prelegenci**: Paulina Gatkowska, Angelika Krüger
-   - **Źródło**: ([Przegląd wydarzenia](https://crossweb.pl/wydarzenia)), ([Więcej szczegółów](https://example.com))
+   - **Źródło**: ([Crossweb](https://crossweb.pl/wydarzenia)), ([Example](https://example.com))
 </examples>"""
