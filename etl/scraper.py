@@ -382,8 +382,12 @@ async def main():
 def clear_output_dir():
     if os.path.exists(OUTPUT_DIR):
         print("Removing existing output directory")
-        shutil.rmtree(OUTPUT_DIR)
-    os.makedirs(OUTPUT_DIR)
+        print(os.listdir(OUTPUT_DIR))
+        for file in os.listdir(OUTPUT_DIR):
+            if file:
+                os.remove(os.path.join(OUTPUT_DIR, file))
+                print(f"Deleted: {os.path.join(OUTPUT_DIR, file)}")
+    # os.makedirs(OUTPUT_DIR)
 
 
 if __name__ == "__main__":
