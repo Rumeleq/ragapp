@@ -3,7 +3,6 @@ import json
 import os
 import random
 import re
-import shutil
 import subprocess
 import time
 from datetime import datetime, timedelta
@@ -402,7 +401,7 @@ if __name__ == "__main__":
 
     last_update_timestamp = None  # For testing purposes
 
-    if last_update_timestamp is None or datetime.now() - last_update_timestamp > timedelta(hours=12):
+    if last_update_timestamp is None or datetime.now() - last_update_timestamp > timedelta(hours=6):
         OUTPUT_DIR = os.getenv("SCRAPING_OUTPUT_DIR")
         clear_output_dir()
         vector_storage = create_new_vector_storage()
