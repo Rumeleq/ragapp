@@ -62,6 +62,7 @@ def create_new_vector_storage() -> Chroma:
 
     try:
         CHROMA_PORT = int(os.getenv("CHROMADB_PORT"))
+        CHROMA_HOST = os.getenv("CHROMADB_HOST")
 
         # Embedding function used to create vectors
         embedding_function = OpenAIEmbeddings(
@@ -71,7 +72,7 @@ def create_new_vector_storage() -> Chroma:
         # Create a connection to the Chromadb vector database collection or create a new collection
         vector_storage = Chroma(
             collection_name="PolandEventInfo",
-            client_settings=Settings(chroma_server_host="chromadb", chroma_server_http_port=CHROMA_PORT),
+            client_settings=Settings(chroma_server_host=CHROMA_HOST, chroma_server_http_port=CHROMA_PORT),
             embedding_function=embedding_function,
         )
 

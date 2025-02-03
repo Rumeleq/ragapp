@@ -51,7 +51,7 @@ def connect_to_vector_storage(collection_name: str, port: int) -> Chroma:
     # Create a connection to the Chromadb vector database collection or create a new collection.
     vector_storage = Chroma(
         collection_name=collection_name,
-        client_settings=Settings(chroma_server_host="chromadb", chroma_server_http_port=port),
+        client_settings=Settings(chroma_server_host=st.session_state.CHROMA_HOST, chroma_server_http_port=port),
         embedding_function=embedding_function,
     )
     print("Connected to Chroma vector storage")
@@ -245,6 +245,7 @@ if "initialized" not in st.session_state:
 
         # Get the port number for the Chromadb vector storage
         st.session_state.CHROMA_PORT = int(os.getenv("CHROMADB_PORT"))
+        st.session_state.CHROMA_HOST = os.getenv("CHROMADB_HOST")
 
         # Initialize the chat model, model used to decide on the need to search the vector storage, search prompt, main prompt, conversation history, search decisions memory, and vector storage
         st.session_state.chat_model = ChatOpenAI(
