@@ -5,8 +5,8 @@ from datetime import datetime
 from typing import Generator
 
 import aiofiles
+import chromadb
 import streamlit as st
-from chromadb.config import Settings
 from dotenv import load_dotenv
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder, SystemMessagePromptTemplate
 from langchain_chroma import Chroma
@@ -48,10 +48,14 @@ def connect_to_vector_storage(collection_name: str, port: int) -> Chroma:
         model="text-embedding-3-small", max_retries=5, request_timeout=15, retry_max_seconds=4, retry_min_seconds=1
     )
 
+    # Create client for chroma
+    client = chromadb.HttpClient(host=st.session_state.CHROMA_HOST, port=st.session_state.CHROMA_PORT)
+
     # Create a connection to the Chromadb vector database collection or create a new collection.
     vector_storage = Chroma(
+        client=client,
         collection_name=collection_name,
-        client_settings=Settings(chroma_server_host="chromadb", chroma_server_http_port=port),
+        # client_settings=Settings(chroma_server_host=st.session_state.CHROMA_HOST, chroma_server_http_port=port),
         embedding_function=embedding_function,
     )
     print("Connected to Chroma vector storage")
@@ -245,6 +249,7 @@ if "initialized" not in st.session_state:
 
         # Get the port number for the Chromadb vector storage
         st.session_state.CHROMA_PORT = int(os.getenv("CHROMADB_PORT"))
+        st.session_state.CHROMA_HOST = os.getenv("CHROMADB_HOST")
 
         # Initialize the chat model, model used to decide on the need to search the vector storage, search prompt, main prompt, conversation history, search decisions memory, and vector storage
         st.session_state.chat_model = ChatOpenAI(

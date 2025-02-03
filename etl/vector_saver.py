@@ -1,8 +1,7 @@
 import json
 import os
-import shutil
 
-from chromadb.config import Settings
+import chromadb
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
@@ -62,16 +61,21 @@ def create_new_vector_storage() -> Chroma:
 
     try:
         CHROMA_PORT = int(os.getenv("CHROMADB_PORT"))
+        CHROMA_HOST = os.getenv("CHROMADB_HOST")
 
         # Embedding function used to create vectors
         embedding_function = OpenAIEmbeddings(
             model="text-embedding-3-small", max_retries=5, request_timeout=15, retry_max_seconds=4, retry_min_seconds=1
         )
 
+        # Create Chroma's client
+        client = chromadb.HttpClient(host=CHROMA_HOST, port=CHROMA_PORT)
+
         # Create a connection to the Chromadb vector database collection or create a new collection
         vector_storage = Chroma(
+            client=client,
             collection_name="PolandEventInfo",
-            client_settings=Settings(chroma_server_host="chromadb", chroma_server_http_port=CHROMA_PORT),
+            # client_settings=Settings(chroma_server_host=CHROMA_HOST, chroma_server_http_port=CHROMA_PORT),
             embedding_function=embedding_function,
         )
 

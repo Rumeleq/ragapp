@@ -21,24 +21,35 @@ services:
 
   etl:
     build: ./etl
+    env_file: .env
+    environment:
+      CHROMADB_HOST: chromadb
+      CHROMADB_PORT: 8000
+      SCRAPING_OUTPUT_DIR: ./data
+      SCRAPING_URLS: "https://www.eventbrite.com/d/poland/other--events/?page=1, https://www.eventbrite.com/d/poland/all-events/?subcategories=4004&page=1, https://www.eventbrite.com/d/poland/science-and-tech--events/?page=1, https://crossweb.pl/wydarzenia/, https://unikonferencje.pl/konferencje/technologie_informacyjne, https://unikonferencje.pl/konferencje/elektrotechnika, https://unikonferencje.pl/konferencje/automatyka_robotyka, https://unikonferencje.pl/konferencje/informatyka_teoretyczna"
     networks:
       - rag-net
     volumes:
       - etl-data:/app/data
-      - chroma-data:/chroma
+#      - chroma-data:/app/chroma
     depends_on:
       chromadb:
         condition: service_healthy
 
   frontend:
     build: ./frontend
+    env_file: .env
+    environment:
+      CHROMADB_HOST: chromadb
+      CHROMADB_PORT: 8000
+      SCRAPING_OUTPUT_DIR: ./data
     ports:
       - "127.0.0.1:8501:8501"
     networks:
       - rag-net
     volumes:
       - etl-data:/app/data
-      - chroma-data:/chroma
+#      - chroma-data:/app/chroma
     depends_on:
       etl:
         condition: service_completed_successfully

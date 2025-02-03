@@ -431,6 +431,7 @@ def clear_output_dir():
 
 
 if __name__ == "__main__":
+    print("ETL process is running, please wait...")
     """
     try:
         with open("last_update_timestamp.txt", "r") as f:
