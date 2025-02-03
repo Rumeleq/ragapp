@@ -21,6 +21,10 @@ services:
 
   etl:
     build: ./etl
+    env_file: /etl/.env
+    environment:
+      CHROMADB_HOST: chromadb
+      CHROMADB_PORT: 8000
     networks:
       - rag-net
     volumes:
