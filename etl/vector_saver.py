@@ -75,7 +75,6 @@ def create_new_vector_storage() -> Chroma:
         vector_storage = Chroma(
             client=client,
             collection_name="PolandEventInfo",
-            # client_settings=Settings(chroma_server_host=CHROMA_HOST, chroma_server_http_port=CHROMA_PORT),
             embedding_function=embedding_function,
         )
 
