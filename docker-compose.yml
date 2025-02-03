@@ -21,7 +21,7 @@ services:
 
   etl:
     build: ./etl
-    env_file: /etl/.env
+    env_file: .env
     environment:
       CHROMADB_HOST: chromadb
       CHROMADB_PORT: 8000
@@ -38,7 +38,7 @@ services:
 
   frontend:
     build: ./frontend
-    env_file: /etl/.env
+    env_file: .env
     environment:
       CHROMADB_HOST: chromadb
       CHROMADB_PORT: 8000
