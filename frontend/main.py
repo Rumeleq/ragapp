@@ -55,7 +55,6 @@ def connect_to_vector_storage(collection_name: str, port: int) -> Chroma:
     vector_storage = Chroma(
         client=client,
         collection_name=collection_name,
-        # client_settings=Settings(chroma_server_host=st.session_state.CHROMA_HOST, chroma_server_http_port=port),
         embedding_function=embedding_function,
     )
     print("Connected to Chroma vector storage")
