@@ -3,7 +3,6 @@ import json
 import os
 import random
 import re
-import subprocess
 import time
 from datetime import datetime, timedelta
 from typing import List
@@ -70,12 +69,7 @@ async def save_event_details(event_details: dict[str]) -> None:
     async with aiofiles.open(f"{OUTPUT_DIR}/{event_id}.json", "w", encoding="utf-8") as f:
         await f.write(json.dumps(event_details, indent=4, ensure_ascii=False))
 
-    filtered_event_details = {
-        key: value for key, value in event_details.items() if key != "event_description" and value != "N/A"
-    }
-    await add_data_to_vector_storage(
-        vector_storage, filtered_event_details, event_details["event_description"], f"{OUTPUT_DIR}/{event_id}.json"
-    )
+    await add_data_to_vector_storage(vector_storage, event_details, f"{OUTPUT_DIR}/{event_id}.json")
 
 
 async def scrape_unikon_events(url: str) -> None:
@@ -437,6 +431,7 @@ def clear_output_dir():
 
 
 if __name__ == "__main__":
+    print("ETL process is running, please wait...")
     """
     try:
         with open("last_update_timestamp.txt", "r") as f:
@@ -464,5 +459,3 @@ if __name__ == "__main__":
             f.write(datetime.now().strftime("%d-%m-%Y %H:%M"))
     else:
         print("Last update was less than 12 hours ago. Skipping scraping.")
-
-    subprocess.Popen(["streamlit", "run", "../frontend/main.py"])

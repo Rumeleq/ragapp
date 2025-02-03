@@ -8,9 +8,6 @@ services:
       - PERSIST_DIRECTORY=${PERSIST_DIRECTORY:-/chroma/chroma}
     volumes:
       - chroma-data:/chroma/chroma
-# Uncomment this if the port does not work
-#    ports:
-#      - "8000"
     networks:
       - rag-net
     healthcheck:
@@ -21,24 +18,25 @@ services:
 
   etl:
     build: ./etl
+    env_file: .env
     networks:
       - rag-net
     volumes:
       - etl-data:/app/data
-      - chroma-data:/chroma
+#      - chroma-data:/app/chroma
     depends_on:
       chromadb:
         condition: service_healthy
 
   frontend:
     build: ./frontend
+    env_file: .env
     ports:
       - "127.0.0.1:8501:8501"
     networks:
       - rag-net
     volumes:
       - etl-data:/app/data
-      - chroma-data:/chroma
     depends_on:
       etl:
         condition: service_completed_successfully
