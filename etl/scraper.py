@@ -3,7 +3,6 @@ import json
 import os
 import random
 import re
-import subprocess
 import time
 from datetime import datetime, timedelta
 from typing import List
@@ -459,5 +458,3 @@ if __name__ == "__main__":
             f.write(datetime.now().strftime("%d-%m-%Y %H:%M"))
     else:
         print("Last update was less than 12 hours ago. Skipping scraping.")
-
-    subprocess.Popen(["streamlit", "run", "../frontend/main.py"])

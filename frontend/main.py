@@ -31,13 +31,13 @@ if "bot_responses" not in st.session_state:
     st.session_state.bot_responses = []
 
 
-def connect_to_vector_storage(collection_name: str, port: str) -> Chroma:
+def connect_to_vector_storage(collection_name: str, port: int) -> Chroma:
     """
     Creates a connection to the Chromadb vector database collection.
 
     Parameters:
         collection_name (str): The name of the collection to connect to.
-        port (str): The port number to connect to Chromadb.
+        port (int): The port number to connect to Chromadb.
 
     Returns:
         Chroma: An object to connect to and perform operations on a Chromadb vector database collection.
@@ -51,7 +51,7 @@ def connect_to_vector_storage(collection_name: str, port: str) -> Chroma:
     # Create a connection to the Chromadb vector database collection or create a new collection.
     vector_storage = Chroma(
         collection_name=collection_name,
-        client_settings=Settings(chroma_server_host="localhost", chroma_server_http_port=port),
+        client_settings=Settings(chroma_server_host="chromadb", chroma_server_http_port=port),
         embedding_function=embedding_function,
     )
     print("Connected to Chroma vector storage")
@@ -106,8 +106,8 @@ async def get_knowledge_from_vector_storage() -> str:
         )
 
         # Get the response from the chat model
-        response = (st.session_state.chat_model.invoke(decisive_prompt)).content.strip()
-        print("Sent prompt to decide whether to search the database")
+        response = (st.session_state.decisive_model.invoke(decisive_prompt)).content.strip()
+        print("Sent prompt to decide whether to search the vector storage")
         # Add the decision to the search decisions memory
         st.session_state.search_decisions_memory += f"- {response}\n"
         # Parse the response from the chat model
@@ -244,11 +244,20 @@ if "initialized" not in st.session_state:
         st.session_state.initialized = True
 
         # Get the port number for the Chromadb vector storage
-        st.session_state.CHROMA_PORT = os.getenv("CHROMA_PORT")
+        st.session_state.CHROMA_PORT = int(os.getenv("CHROMADB_PORT"))
 
-        # Initialize the chat model, search prompt, main prompt, conversation history, search decisions memory, and vector storage
+        # Initialize the chat model, model used to decide on the need to search the vector storage, search prompt, main prompt, conversation history, search decisions memory, and vector storage
         st.session_state.chat_model = ChatOpenAI(
-            model_name="gpt-4o-mini", max_retries=5, max_tokens=8000, request_timeout=40, temperature=0.2
+            model_name="gpt-4o-mini", max_retries=5, max_tokens=8000, request_timeout=40, temperature=0.4
+        )
+
+        st.session_state.decisive_model = ChatOpenAI(
+            model_name="gpt-4o-mini",
+            max_retries=5,
+            max_tokens=5000,
+            model_kwargs={"response_format": {"type": "json_object"}},
+            request_timeout=40,
+            temperature=0.2,
         )
 
         st.session_state.use_search_prompt = ChatPromptTemplate.from_messages(
@@ -275,7 +284,7 @@ if "initialized" not in st.session_state:
         st.session_state.blocking_conversation = False
     except Exception as e:
         # Display an error message if the application fails to initialize
-        st.error(f"Failed to initialize application! Try refreshing the page.")
+        st.error(f"Failed to initialize application! Try refreshing the page. Error: {e}")
         st.session_state.blocking_conversation = True
         st.stop()
 
