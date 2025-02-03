@@ -2,31 +2,24 @@ import json
 import os
 import shutil
 
+from chromadb.config import Settings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
 
 
-class VectorStorageError(Exception):
-    """
-    This is an exception for errors related to the creation of the vector storage.
-    """
-
-    pass
-
-
-async def add_data_to_vector_storage(vector_storage: Chroma, event_details: dict[str], filename: str):
+async def add_data_to_vector_storage(vector_storage: Chroma, event_details: dict[str], file_path: str) -> None:
     """
     It divides the extracted event information from the website into smaller parts and adds them to the vector storage after automatically converting them into vectors.
-    Each vector is added with the name of the file where the data changed into this vector is stored.
+    Each vector is added with the path to the file where the data changed into this vector is stored.
 
     Parameters:
         vector_storage (Chroma): The vector storage to which the data is added.
         event_details (dict[str]): All data about the event.
-        filename (str): The name of the file where all event data is held.
+        file_path (str): The path to the file where all event data is held.
 
-    Raises:
-        Exception: If there is an error while adding data to the vector storage.
+    Note:
+        If there is an error while adding data to the vector storage, it is handled internally and not re-raised.
     """
     try:
         # Filter event information, removing descriptions (as they are long and need to be split separately) and non-event related values
@@ -51,9 +44,9 @@ async def add_data_to_vector_storage(vector_storage: Chroma, event_details: dict
         chunks.append(json.dumps(filtered_event_details, ensure_ascii=False))
 
         # Add the text chunks to the vector storage
-        await vector_storage.aadd_texts(texts=chunks, metadatas=[{"filename": filename}] * len(chunks))
+        await vector_storage.aadd_texts(texts=chunks, metadatas=[{"location": file_path}] * len(chunks))
     except Exception as e:
-        print(f"Error while adding {filename} to vector_storage: {e}")
+        print(f"Error while adding {file_path} to vector_storage: {e}")
 
 
 def create_new_vector_storage() -> Chroma:
@@ -64,39 +57,31 @@ def create_new_vector_storage() -> Chroma:
         Chroma: An empty vector storage object for storing new data.
 
     Raises:
-        VectorStorageError: If there is an error while cleaning the vector storage.
+        Exception: If there is an error while resetting collection.
     """
-    CHROMA_PATH = "../chroma"
 
     try:
-        if os.path.exists(CHROMA_PATH):
-            for item in os.listdir(CHROMA_PATH):
-                if item == ".gitignore":  # must be removed at the end of application development
-                    continue
-                item_path = os.path.join(CHROMA_PATH, item)
-                try:
-                    if os.path.isfile(item_path) or os.path.islink(item_path):
-                        os.unlink(item_path)
-                    elif os.path.isdir(item_path):
-                        shutil.rmtree(item_path)
-                except OSError as e:
-                    raise VectorStorageError(f"Failed to clean vector storage: {e}")
-        else:
-            print(f"Directory {CHROMA_PATH} does not exist")
+        CHROMA_PORT = os.getenv("CHROMA_PORT")
 
         # Embedding function used to create vectors
         embedding_function = OpenAIEmbeddings(
             model="text-embedding-3-small", max_retries=5, request_timeout=15, retry_max_seconds=4, retry_min_seconds=1
         )
 
-        # Create a new vector storage object
+        # Create a connection to the Chromadb vector database collection or create a new collection
         vector_storage = Chroma(
-            collection_name="PolandEventInfo", persist_directory=CHROMA_PATH, embedding_function=embedding_function
+            collection_name="PolandEventInfo",
+            client_settings=Settings(chroma_server_host="localhost", chroma_server_http_port=CHROMA_PORT),
+            embedding_function=embedding_function,
         )
 
-        print("Vector storage cleaned successfully")
+        # Reset the collection
+        vector_storage.reset_collection()
+
+        print("Vector storage reset successfully")
         return vector_storage
     except Exception as e:
-        error_msg = f"Error while cleaning vector storage: {e}"
-        print(error_msg)
-        raise VectorStorageError(error_msg)
+        print(
+            "An error occurred while cleaning the vector storage. The application will not work properly. Stopping application."
+        )
+        raise
