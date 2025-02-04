@@ -38,9 +38,25 @@ If you don't have docker installed on your computer yet, you can install it [her
 Once you have docker installed, follow these guidelines:
 1. Clone the repo on your local machine 
    1. You can do it by running this command in terminal:
-      1. ```git clone https://github.com/Rumeleq/ragapp.git```
-2. Make sure you are in the project's root folder and run the command:
-   1. ```docker-compose up```
+        ```
+        git clone https://github.com/Rumeleq/ragapp.git
+        ```
+2. Prepare the `.env` file, it should be placed in the project's root folder
+
+    It should contain variables like this:
+    ```
+    OPENAI_API_KEY=your_api_key
+    CHROMADB_HOST=chromadb
+    CHROMADB_PORT=8000
+    SCRAPING_OUTPUT_DIR=./data
+    SCRAPING_URLS=https://www.eventbrite.com/d/poland/other--events/?page=1, https://www.eventbrite.com/d/poland/all-events/?subcategories=4004&page=1, https://www.eventbrite.com/d/poland/science-and-tech--events/?page=1, https://crossweb.pl/wydarzenia/, https://unikonferencje.pl/konferencje/technologie_informacyjne, https://unikonferencje.pl/konferencje/elektrotechnika, https://unikonferencje.pl/konferencje/automatyka_robotyka, https://unikonferencje.pl/konferencje/informatyka_teoretyczna
+    ```
+
+3. Make sure you are in the project's root folder and run the command:
+   1.
+    ```
+    docker-compose up
+    ```
    2. By running the above command, docker should:
       1. install the chromadb image (unless you have it already)
       2. run etl container after the chroma's healthcheck
@@ -50,7 +66,7 @@ Once you have docker installed, follow these guidelines:
          3. [eventbritte](https://www.eventbrite.com/)
       4. after the `scraper.py` finishes successfully, frontend container should run and expose the port 8501
    3. The whole process could take **even a few minutes**, especially when running for the first time
-3. If you see in docker logs that frontend container is starting to run, you can [visit the webapp in browser](http://localhost:8501) 
+4. If you see in docker logs that frontend container is starting to run, you can [visit the webapp in browser](http://localhost:8501) 
 
 ## Screenshots
 
