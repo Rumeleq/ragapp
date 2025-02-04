@@ -50,7 +50,7 @@ async def add_data_to_vector_storage(vector_storage: Chroma, event_details: dict
 
 def create_new_vector_storage() -> Chroma:
     """
-    Resets the contents of the previous collection by deleting it and recreating it, but empty.
+    This function creates a new vector storage collection in ChromaDB. If the collection already exists, it is being deleted and recreated, but empty.
 
     Returns:
         Chroma: An empty vector storage object for storing new data.
@@ -60,6 +60,7 @@ def create_new_vector_storage() -> Chroma:
     """
 
     try:
+        # Get the Chroma's host and port from the environment variables
         CHROMA_PORT = int(os.getenv("CHROMADB_PORT"))
         CHROMA_HOST = os.getenv("CHROMADB_HOST")
 
@@ -71,15 +72,20 @@ def create_new_vector_storage() -> Chroma:
         # Create Chroma's client
         client = chromadb.HttpClient(host=CHROMA_HOST, port=CHROMA_PORT)
 
-        # Create a connection to the Chromadb vector database collection or create a new collection
-        vector_storage = Chroma(
-            client=client,
-            collection_name="PolandEventInfo",
-            embedding_function=embedding_function,
-        )
+        # Try to delete the collection if it already exists
+        try:
+            collection = client.get_collection("PolandEventInfo")
+            print("Number of documents:", collection.count())
+            collection.delete(where={"location": {"$ne": ""}})
+            print("Number of documents:", collection.count())
+            del collection
+            client.delete_collection("PolandEventInfo")
+        except Exception as e:
+            # Collection does not exist. Therefore, we can simply continue and create a new one.
+            pass
 
-        # Reset the collection
-        vector_storage.reset_collection()
+        # Create a new collection in ChromaDB vector storage
+        vector_storage = Chroma(client=client, collection_name="PolandEventInfo", embedding_function=embedding_function)
 
         print("Vector storage reset successfully")
         return vector_storage
