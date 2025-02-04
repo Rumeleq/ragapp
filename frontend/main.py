@@ -31,13 +31,12 @@ if "bot_responses" not in st.session_state:
     st.session_state.bot_responses = []
 
 
-def connect_to_vector_storage(collection_name: str, port: int) -> Chroma:
+def connect_to_vector_storage(collection_name: str) -> Chroma:
     """
     Creates a connection to the Chromadb vector database collection.
 
     Parameters:
         collection_name (str): The name of the collection to connect to.
-        port (int): The port number to connect to Chromadb.
 
     Returns:
         Chroma: An object to connect to and perform operations on a Chromadb vector database collection.
@@ -197,13 +196,18 @@ def generate_response(user_query: str) -> Generator[AIMessageChunk, None, None]:
     )
     response = st.session_state.chat_model.stream(prompt)
 
-    # Yield the response chunks and check if the chatbot did not complete its speech
+    # Yield the response chunks and check if the chatbot did not complete its speech or stopped unexpectedly
     for chunk in response:
         finish_reason = chunk.response_metadata.get("finish_reason", None)
-        if finish_reason and finish_reason == "length":
-            st.warning(
-                "The chatbot did not complete its speech due to the limited permitted length of speech. Try phrasing your request differently."
-            )
+        if finish_reason:
+            if finish_reason == "length":
+                st.warning(
+                    "The chatbot did not complete its speech due to the limited permitted length of speech. Try phrasing your request differently."
+                )
+            elif finish_reason != "stop":
+                st.warning(
+                    "The chatbot did not complete its speech, ommited some parts of the response or stopped unexpectedly. Try phrasing your request differently."
+                )
         yield chunk
 
 
@@ -246,7 +250,7 @@ if "initialized" not in st.session_state:
         # Set the flag to indicate that the application is initialized
         st.session_state.initialized = True
 
-        # Get the port number for the Chromadb vector storage
+        # Get the port number and the host for the Chromadb vector storage
         st.session_state.CHROMA_PORT = int(os.getenv("CHROMADB_PORT"))
         st.session_state.CHROMA_HOST = os.getenv("CHROMADB_HOST")
 
@@ -282,7 +286,7 @@ if "initialized" not in st.session_state:
 
         st.session_state.search_decisions_memory = ""
 
-        st.session_state.vector_storage = connect_to_vector_storage("PolandEventInfo", st.session_state.CHROMA_PORT)
+        st.session_state.vector_storage = connect_to_vector_storage("PolandEventInfo")
 
         # Initialize conversation blocking flag
         st.session_state.blocking_conversation = False

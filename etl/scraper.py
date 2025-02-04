@@ -458,4 +458,4 @@ if __name__ == "__main__":
         with open("last_update_timestamp.txt", "w") as f:
             f.write(datetime.now().strftime("%d-%m-%Y %H:%M"))
     else:
-        print("Last update was less than 12 hours ago. Skipping scraping.")
+        print("Last update was less than 6 hours ago. Skipping scraping.")

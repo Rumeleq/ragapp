@@ -88,7 +88,7 @@ Here is an AI-related event in Poland:
    - **Fee**: Free
    - **Description**: An event dedicated to the revolution in software testing using AI.
    - **Speakers**: Paulina Gatkowska, Angelika Krüger
-   - **Source**: ([Crossweb](https://crossweb.pl/wydarzenia)), ([Example](https://example.com))
+   - **Source**: ([Crossweb](https://crossweb.pl/wydarzenia)), ([XYZ](https://xyz.com))
 
 
 USer: "Jakie wydarzenia związane ze sztuczną inteligencją odbywają się w Polsce?" Event knowledge: {{ "event_title": "PAIDA - Testowanie oprogramowania z pomocą AI", "event_date": "27.02.2025", "event_city": "Poznań", "event_address": "Mostowa 38", "event_language": "Polski", "event_fee": "Bez opłat", "event_description": "Wydarzenie poświęcone rewolucji w testowaniu oprogramowania z pomocą AI.", "speakers": "Paulina Gatkowska, Angelika Krüger", "source": "https://crossweb.pl/wydarzenia", "event_webpage": "https://example.com" }} Response:
@@ -101,5 +101,5 @@ Oto wydarzenie związane ze sztuczną inteligencją w Polsce:
    - **Opłata**: Bez opłat
    - **Opis**: Wydarzenie poświęcone rewolucji w testowaniu oprogramowania z pomocą AI.
    - **Prelegenci**: Paulina Gatkowska, Angelika Krüger
-   - **Źródło**: ([Crossweb](https://crossweb.pl/wydarzenia)), ([Example](https://example.com))
+   - **Źródło**: ([Crossweb](https://crossweb.pl/wydarzenia)), ([XYZ](https://xyz.com))
 </examples>"""
