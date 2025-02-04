@@ -25,6 +25,7 @@ load_dotenv()
         aiohttp.ClientError,
         aiohttp.ClientConnectorError,
         aiohttp.ClientConnectorDNSError,
+        aiohttp.ClientResponseError,
         ConnectionRefusedError,
         AssertionError,
     ),
@@ -40,7 +41,11 @@ async def get_soup_from_url(url: str) -> BeautifulSoup:
     await asyncio.sleep(random.uniform(1, 3))
     async with aiohttp.ClientSession() as session:
         async with session.get(url, headers=HEADERS) as response:
-            response.raise_for_status()
+            try:
+                response.raise_for_status()
+            except Exception:
+                print(f"Failed to get response from {url}")
+                raise
             response_content: bytes = await response.read()
 
     try:
@@ -82,7 +87,11 @@ async def scrape_unikon_events(url: str) -> None:
     event_urls: List[str] = []
     page_index = 1
     while True:
-        event_list_soup: BeautifulSoup = await get_soup_from_url(f"{url},s{page_index}")
+        try:
+            event_list_soup: BeautifulSoup = await get_soup_from_url(f"{url},s{page_index}")
+        except Exception:
+            print(f"Failed to get response from {url},s{page_index}")
+            return
         event_urls.extend(anchor["href"] for anchor in event_list_soup.find_all("a", property="url"))
         page_index += 1
 
@@ -112,7 +121,11 @@ async def scrape_unikon_event(url: str) -> None:
     if url in visited_urls:
         return
     visited_urls.add(url)
-    event_soup: BeautifulSoup = await get_soup_from_url(url)
+    try:
+        event_soup: BeautifulSoup = await get_soup_from_url(url)
+    except Exception:
+        print(f"Failed to get response from {url}")
+        return
     event_details: dict[str] = {}
 
     # region Extracting event details
@@ -181,7 +194,11 @@ async def scrape_brite_events(url: str) -> None:
     event_urls: List[str] = []
     page_index = 1
     while True:
-        event_list_soup: BeautifulSoup = await get_soup_from_url(f"{url[:-1]}{page_index}")
+        try:
+            event_list_soup: BeautifulSoup = await get_soup_from_url(f"{url[:-1]}{page_index}")
+        except Exception:
+            print(f"Failed to get response from {url[:-1]}{page_index}")
+            return
         event_urls.extend(anchor["href"] for anchor in event_list_soup.find_all("a", class_="event-card-link"))
         event_urls = list(set(event_urls))  # Remove duplicates
         page_index += 1
@@ -206,7 +223,11 @@ async def scrape_brite_event(url: str) -> None:
     :param url: URL of the event to scrape and save
     :return: None
     """
-    event_soup: BeautifulSoup = await get_soup_from_url(url)
+    try:
+        event_soup: BeautifulSoup = await get_soup_from_url(url)
+    except Exception:
+        print(f"Failed to get response from {url}")
+        return
     event_details: dict[str] = {}
     # region Extracting event details
 
@@ -277,7 +298,11 @@ async def scrape_crossweb_events(url: str) -> None:
     :param url: URL to scrape event URLs from
     :return: None
     """
-    event_list_soup: BeautifulSoup = await get_soup_from_url(url)
+    try:
+        event_list_soup: BeautifulSoup = await get_soup_from_url(url)
+    except Exception:
+        print(f"Failed to get response from {url}")
+        return
     event_urls: List[str] = [anchor["href"] for anchor in event_list_soup.find_all("a", class_="clearfix")]
     print(f"Found {len(event_urls)} events on Crossweb")
 
@@ -297,7 +322,11 @@ async def scrape_crossweb_event(url: str) -> None:
     :param url: URL of the event to scrape and save
     :return: None
     """
-    event_soup: BeautifulSoup = await get_soup_from_url(url)
+    try:
+        event_soup: BeautifulSoup = await get_soup_from_url(url)
+    except Exception:
+        print(f"Failed to get response from {url}")
+        return
     event_details: dict[str] = {}
 
     # region Extracting event details
@@ -406,7 +435,7 @@ async def main():
     for url in URLS:
         if "unikonferencje" in url:
             tasks.append(asyncio.create_task(scrape_unikon_events(url)))
-        if "eventbrite" in url:
+        elif "eventbrite" in url:
             tasks.append(asyncio.create_task(scrape_brite_events(url)))
         elif "crossweb" in url:
             tasks.append(asyncio.create_task(scrape_crossweb_events(url)))
