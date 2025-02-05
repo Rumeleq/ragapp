@@ -48,6 +48,7 @@ Once you have docker installed, follow these guidelines:
     OPENAI_API_KEY=your_api_key
     CHROMADB_HOST=chromadb
     CHROMADB_PORT=8000
+    CHROMADB_DIR=./chroma
     SCRAPING_OUTPUT_DIR=./data
     SCRAPING_URLS=https://www.eventbrite.com/d/poland/other--events/?page=1, https://www.eventbrite.com/d/poland/all-events/?subcategories=4004&page=1, https://www.eventbrite.com/d/poland/science-and-tech--events/?page=1, https://crossweb.pl/wydarzenia/, https://unikonferencje.pl/konferencje/technologie_informacyjne, https://unikonferencje.pl/konferencje/elektrotechnika, https://unikonferencje.pl/konferencje/automatyka_robotyka, https://unikonferencje.pl/konferencje/informatyka_teoretyczna
     ```
