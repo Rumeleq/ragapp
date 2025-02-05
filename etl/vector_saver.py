@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 
 import chromadb
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -50,10 +51,10 @@ async def add_data_to_vector_storage(vector_storage: Chroma, event_details: dict
 
 def create_new_vector_storage() -> Chroma:
     """
-    This function creates a new vector storage collection in ChromaDB. If the collection already exists, it is being deleted and recreated, but empty.
+    This function creates a new vector storage collection in ChromaDB and allows to connect to it via the network. If the collection already exists, it is being deleted and recreated, but empty.
 
     Returns:
-        Chroma: An empty vector storage object for storing new data.
+        Chroma: Object enabling connection to the collection via the network
 
     Raises:
         Exception: If there is an error while resetting collection.
@@ -63,34 +64,46 @@ def create_new_vector_storage() -> Chroma:
         # Get the Chroma's host and port from the environment variables
         CHROMA_PORT = int(os.getenv("CHROMADB_PORT"))
         CHROMA_HOST = os.getenv("CHROMADB_HOST")
+        CHROMA_DIR = os.getenv("CHROMADB_DIR")
+
+        # Check if all required environment variables are set
+        if CHROMA_DIR is None or CHROMA_HOST is None or CHROMA_PORT is None:
+            raise ValueError("Not all required environment variables are set")
 
         # Embedding function used to create vectors
         embedding_function = OpenAIEmbeddings(
             model="text-embedding-3-small", max_retries=5, request_timeout=15, retry_max_seconds=4, retry_min_seconds=1
         )
 
+        # Remove the existing collection
+        if os.path.exists(CHROMA_DIR):
+            # Check whether the number of files indicate the need to delete the previous collection
+            if len(os.listdir(CHROMA_DIR)) > 1:
+                for item in os.listdir(CHROMA_DIR):
+                    item_path = os.path.join(CHROMA_DIR, item)
+                    if os.path.isfile(item_path) or os.path.islink(item_path):
+                        os.unlink(item_path)
+                    elif os.path.isdir(item_path):
+                        shutil.rmtree(item_path)
+                print("Vector storage directory cleaned successfully")
+
+                # Create new empty collection files to keep the vector storage working properly
+                new_vector_storage_files = Chroma(
+                    collection_name="PolandEventInfo", embedding_function=embedding_function, persist_directory=CHROMA_DIR
+                )
+        else:
+            raise FileNotFoundError(f"Vector storage directory {CHROMA_DIR} does not exist")
+
         # Create Chroma's client
         client = chromadb.HttpClient(host=CHROMA_HOST, port=CHROMA_PORT)
 
-        # Try to delete the collection if it already exists
-        try:
-            collection = client.get_collection("PolandEventInfo")
-            print("Number of documents:", collection.count())
-            collection.delete(where={"location": {"$ne": ""}})
-            print("Number of documents:", collection.count())
-            del collection
-            client.delete_collection("PolandEventInfo")
-        except Exception as e:
-            # Collection does not exist. Therefore, we can simply continue and create a new one.
-            pass
-
-        # Create a new collection in ChromaDB vector storage
+        # Create a network connection to the vector storage
         vector_storage = Chroma(client=client, collection_name="PolandEventInfo", embedding_function=embedding_function)
 
-        print("Vector storage reset successfully")
+        print("Empty vector storage collection created successfully")
         return vector_storage
     except Exception as e:
         print(
-            "An error occurred while cleaning the vector storage. The application will not work properly. Stopping application."
+            f"An error occurred while cleaning the vector storage. The application will not work properly. Stopping application. Error: {e}"
         )
         raise

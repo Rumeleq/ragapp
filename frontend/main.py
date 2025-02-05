@@ -254,6 +254,10 @@ if "initialized" not in st.session_state:
         st.session_state.CHROMA_PORT = int(os.getenv("CHROMADB_PORT"))
         st.session_state.CHROMA_HOST = os.getenv("CHROMADB_HOST")
 
+        # Check if the Chromadb host and port are not empty
+        if st.session_state.CHROMA_PORT is None or st.session_state.CHROMA_HOST is None:
+            raise ValueError("Chromadb host or port not found in environment variables")
+
         # Initialize the chat model, model used to decide on the need to search the vector storage, search prompt, main prompt, conversation history, search decisions memory, and vector storage
         st.session_state.chat_model = ChatOpenAI(
             model_name="gpt-4o-mini", max_retries=5, max_tokens=8000, request_timeout=40, temperature=0.4
@@ -290,6 +294,9 @@ if "initialized" not in st.session_state:
 
         # Initialize conversation blocking flag
         st.session_state.blocking_conversation = False
+
+        # Initialize the length warning flag
+        st.session_state.length_warning_shown = False
     except Exception as e:
         # Display an error message if the application fails to initialize
         st.error(f"Failed to initialize application! Try refreshing the page. Error: {e}")
@@ -313,6 +320,13 @@ if not st.session_state.blocking_conversation:
 
             # Run asynchronous function to display response
             display_response(user_prompt)
+
+            # Check whether to show a warning about the length of the conversation
+            if len(st.session_state.conversation) > 110 and not st.session_state.length_warning_shown:
+                st.warning(
+                    "Such a long conversation can result in long waits for answers or reduced accuracy. You can refresh the page and start the conversation again if this is a problem for you."
+                )
+                st.session_state.length_warning_shown = True
         # Handle exceptions from most of the functions
         except Exception as e:
             # Check if the error is due to exceeding the context length of the chatbot
