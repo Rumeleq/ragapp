@@ -23,7 +23,7 @@ services:
       - rag-net
     volumes:
       - etl-data:/app/data
-#      - chroma-data:/app/chroma
+      - chroma-data:/app/chroma
     depends_on:
       chromadb:
         condition: service_healthy
