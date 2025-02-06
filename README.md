@@ -75,9 +75,7 @@ Correctly set up and working app looks like this:
 
 ## Status
 
-The project is: _in progress_
-
-It is in fact almost done, however it lacks documentation, integration with docker and improvement of internal prompts to AI.
+The project is: _done_
 
 ## Acknowledgements
 
