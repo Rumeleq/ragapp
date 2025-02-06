@@ -5,3 +5,4 @@ langchain==0.3.17
 langchain-openai==0.3.3
 langchain-core==0.3.33
 langchain-chroma==0.2.1
+chromadb==0.6.3
