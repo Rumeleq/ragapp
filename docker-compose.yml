@@ -23,6 +23,7 @@ services:
     volumes:
       - etl-data:/app/data
       - chroma-data:/app/chroma
+      - timestamp:/app/timestamp
     depends_on:
       chromadb:
         condition: service_healthy
