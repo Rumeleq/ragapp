@@ -56,8 +56,9 @@ Once you have docker installed, follow these guidelines:
 3. Make sure you are in the project's root folder and run the command:
    1.
     ```
-    docker-compose up
+    docker compose up
     ```
+    There are two versions of this command: `docker-compose up` and `docker compose up`. On Windows you can run both and it will work fine, however on Linux, it is recommended to pick the second version (without the dash). The command `docker compose up` forces docker to use `docker_compose_v2` which is just better, more stable and more reliable.
    2. By running the above command, docker should:
       1. install the chromadb image (unless you have it already)
       2. run etl container after the chroma's healthcheck
