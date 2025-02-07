@@ -469,7 +469,7 @@ if __name__ == "__main__":
         last_update_timestamp = None  # If the file doesn't exist, set to None
 
     # last_update_timestamp = None  # For testing purposes
-
+    print(f"Last update timestamp: {last_update_timestamp}")
     if last_update_timestamp is None or datetime.now() - last_update_timestamp > timedelta(hours=6):
         OUTPUT_DIR = os.getenv("SCRAPING_OUTPUT_DIR")
         clear_output_dir()
@@ -484,5 +484,6 @@ if __name__ == "__main__":
         # Update the last update timestamp
         with open("timestamp/last_update_timestamp.txt", "w") as f:
             f.write(datetime.now().strftime("%d-%m-%Y %H:%M"))
+            print("Last update timestamp updated.")
     else:
         print("Last update was less than 6 hours ago. Skipping scraping.")
