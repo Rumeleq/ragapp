@@ -42,8 +42,8 @@ services:
 
 volumes:
   chroma-data:
-    driver: local
   etl-data:
+  timestamp:
 
 networks:
   rag-net:
