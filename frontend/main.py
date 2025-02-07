@@ -13,6 +13,7 @@ from langchain_chroma import Chroma
 from langchain_core.messages import AIMessage, AIMessageChunk, HumanMessage
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from prompts import main_system_message_template, use_search_system_message_template
+from streamlit.components.v1 import html
 
 # Load environment variables
 load_dotenv()
@@ -308,6 +309,19 @@ display_conversation()
 
 # Check if the conversation is not blocked by an error
 if not st.session_state.blocking_conversation:
+    # Focus the input element
+    focus_js = """
+            <script>
+                setTimeout(() => {
+                    const chatInputBox = window.parent.document.querySelector('textarea');
+                    if (chatInputBox) {
+                        chatInputBox.focus();
+                    }
+                }, 100);  // Delay in milliseconds
+            </script>
+        """
+    html(focus_js)
+
     # Get user input from chat input
     user_prompt = st.chat_input("Ask a question about tech meetups in Poland")
 
