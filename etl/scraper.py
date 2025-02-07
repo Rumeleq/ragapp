@@ -456,7 +456,6 @@ def clear_output_dir():
             if file:
                 os.remove(os.path.join(OUTPUT_DIR, file))
                 print(f"Deleted: {os.path.join(OUTPUT_DIR, file)}")
-    # os.makedirs(OUTPUT_DIR)
 
 
 if __name__ == "__main__":
