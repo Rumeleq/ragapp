@@ -461,16 +461,15 @@ def clear_output_dir():
 
 if __name__ == "__main__":
     print("ETL process is running, please wait...")
-    """
+
     try:
         with open("last_update_timestamp.txt", "r") as f:
-            last_update_timestamp: str = f.read().strip()
+            last_update_timestamp = f.read().strip()
             last_update_timestamp = datetime.strptime(last_update_timestamp, "%d-%m-%Y %H:%M")
     except FileNotFoundError:
         last_update_timestamp = None  # If the file doesn't exist, set to None
-    """
 
-    last_update_timestamp = None  # For testing purposes
+    # last_update_timestamp = None  # For testing purposes
 
     if last_update_timestamp is None or datetime.now() - last_update_timestamp > timedelta(hours=6):
         OUTPUT_DIR = os.getenv("SCRAPING_OUTPUT_DIR")
