@@ -3,7 +3,6 @@ import json
 import os
 import random
 import re
-import subprocess
 import time
 from datetime import datetime, timedelta
 from typing import List
@@ -26,6 +25,7 @@ load_dotenv()
         aiohttp.ClientError,
         aiohttp.ClientConnectorError,
         aiohttp.ClientConnectorDNSError,
+        aiohttp.ClientResponseError,
         ConnectionRefusedError,
         AssertionError,
     ),
@@ -41,7 +41,11 @@ async def get_soup_from_url(url: str) -> BeautifulSoup:
     await asyncio.sleep(random.uniform(1, 3))
     async with aiohttp.ClientSession() as session:
         async with session.get(url, headers=HEADERS) as response:
-            response.raise_for_status()
+            try:
+                response.raise_for_status()
+            except Exception:
+                print(f"Failed to get response from {url}")
+                raise
             response_content: bytes = await response.read()
 
     try:
@@ -70,12 +74,7 @@ async def save_event_details(event_details: dict[str]) -> None:
     async with aiofiles.open(f"{OUTPUT_DIR}/{event_id}.json", "w", encoding="utf-8") as f:
         await f.write(json.dumps(event_details, indent=4, ensure_ascii=False))
 
-    filtered_event_details = {
-        key: value for key, value in event_details.items() if key != "event_description" and value != "N/A"
-    }
-    await add_data_to_vector_storage(
-        vector_storage, filtered_event_details, event_details["event_description"], f"{OUTPUT_DIR}/{event_id}.json"
-    )
+    await add_data_to_vector_storage(vector_storage, event_details, f"{OUTPUT_DIR}/{event_id}.json")
 
 
 async def scrape_unikon_events(url: str) -> None:
@@ -88,7 +87,11 @@ async def scrape_unikon_events(url: str) -> None:
     event_urls: List[str] = []
     page_index = 1
     while True:
-        event_list_soup: BeautifulSoup = await get_soup_from_url(f"{url},s{page_index}")
+        try:
+            event_list_soup: BeautifulSoup = await get_soup_from_url(f"{url},s{page_index}")
+        except Exception:
+            print(f"Failed to get response from {url},s{page_index}")
+            return
         event_urls.extend(anchor["href"] for anchor in event_list_soup.find_all("a", property="url"))
         page_index += 1
 
@@ -118,7 +121,11 @@ async def scrape_unikon_event(url: str) -> None:
     if url in visited_urls:
         return
     visited_urls.add(url)
-    event_soup: BeautifulSoup = await get_soup_from_url(url)
+    try:
+        event_soup: BeautifulSoup = await get_soup_from_url(url)
+    except Exception:
+        print(f"Failed to get response from {url}")
+        return
     event_details: dict[str] = {}
 
     # region Extracting event details
@@ -187,7 +194,11 @@ async def scrape_brite_events(url: str) -> None:
     event_urls: List[str] = []
     page_index = 1
     while True:
-        event_list_soup: BeautifulSoup = await get_soup_from_url(f"{url[:-1]}{page_index}")
+        try:
+            event_list_soup: BeautifulSoup = await get_soup_from_url(f"{url[:-1]}{page_index}")
+        except Exception:
+            print(f"Failed to get response from {url[:-1]}{page_index}")
+            return
         event_urls.extend(anchor["href"] for anchor in event_list_soup.find_all("a", class_="event-card-link"))
         event_urls = list(set(event_urls))  # Remove duplicates
         page_index += 1
@@ -212,7 +223,11 @@ async def scrape_brite_event(url: str) -> None:
     :param url: URL of the event to scrape and save
     :return: None
     """
-    event_soup: BeautifulSoup = await get_soup_from_url(url)
+    try:
+        event_soup: BeautifulSoup = await get_soup_from_url(url)
+    except Exception:
+        print(f"Failed to get response from {url}")
+        return
     event_details: dict[str] = {}
     # region Extracting event details
 
@@ -283,7 +298,11 @@ async def scrape_crossweb_events(url: str) -> None:
     :param url: URL to scrape event URLs from
     :return: None
     """
-    event_list_soup: BeautifulSoup = await get_soup_from_url(url)
+    try:
+        event_list_soup: BeautifulSoup = await get_soup_from_url(url)
+    except Exception:
+        print(f"Failed to get response from {url}")
+        return
     event_urls: List[str] = [anchor["href"] for anchor in event_list_soup.find_all("a", class_="clearfix")]
     print(f"Found {len(event_urls)} events on Crossweb")
 
@@ -303,7 +322,11 @@ async def scrape_crossweb_event(url: str) -> None:
     :param url: URL of the event to scrape and save
     :return: None
     """
-    event_soup: BeautifulSoup = await get_soup_from_url(url)
+    try:
+        event_soup: BeautifulSoup = await get_soup_from_url(url)
+    except Exception:
+        print(f"Failed to get response from {url}")
+        return
     event_details: dict[str] = {}
 
     # region Extracting event details
@@ -412,7 +435,7 @@ async def main():
     for url in URLS:
         if "unikonferencje" in url:
             tasks.append(asyncio.create_task(scrape_unikon_events(url)))
-        if "eventbrite" in url:
+        elif "eventbrite" in url:
             tasks.append(asyncio.create_task(scrape_brite_events(url)))
         elif "crossweb" in url:
             tasks.append(asyncio.create_task(scrape_crossweb_events(url)))
@@ -433,20 +456,19 @@ def clear_output_dir():
             if file:
                 os.remove(os.path.join(OUTPUT_DIR, file))
                 print(f"Deleted: {os.path.join(OUTPUT_DIR, file)}")
-    # os.makedirs(OUTPUT_DIR)
 
 
 if __name__ == "__main__":
-    """
+    print("ETL process is running, please wait...")
+
     try:
         with open("last_update_timestamp.txt", "r") as f:
-            last_update_timestamp: str = f.read().strip()
+            last_update_timestamp = f.read().strip()
             last_update_timestamp = datetime.strptime(last_update_timestamp, "%d-%m-%Y %H:%M")
     except FileNotFoundError:
         last_update_timestamp = None  # If the file doesn't exist, set to None
-    """
 
-    last_update_timestamp = None  # For testing purposes
+    # last_update_timestamp = None  # For testing purposes
 
     if last_update_timestamp is None or datetime.now() - last_update_timestamp > timedelta(hours=6):
         OUTPUT_DIR = os.getenv("SCRAPING_OUTPUT_DIR")
@@ -463,6 +485,4 @@ if __name__ == "__main__":
         with open("last_update_timestamp.txt", "w") as f:
             f.write(datetime.now().strftime("%d-%m-%Y %H:%M"))
     else:
-        print("Last update was less than 12 hours ago. Skipping scraping.")
-
-    subprocess.Popen(["streamlit", "run", "../frontend/main.py"])
+        print("Last update was less than 6 hours ago. Skipping scraping.")
