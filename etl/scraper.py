@@ -462,7 +462,7 @@ if __name__ == "__main__":
     print("ETL process is running, please wait...")
 
     try:
-        with open("last_update_timestamp.txt", "r") as f:
+        with open("timestamp/last_update_timestamp.txt", "r") as f:
             last_update_timestamp = f.read().strip()
             last_update_timestamp = datetime.strptime(last_update_timestamp, "%d-%m-%Y %H:%M")
     except FileNotFoundError:
@@ -482,7 +482,7 @@ if __name__ == "__main__":
         asyncio.run(main())
 
         # Update the last update timestamp
-        with open("last_update_timestamp.txt", "w") as f:
+        with open("timestamp/last_update_timestamp.txt", "w") as f:
             f.write(datetime.now().strftime("%d-%m-%Y %H:%M"))
     else:
         print("Last update was less than 6 hours ago. Skipping scraping.")
