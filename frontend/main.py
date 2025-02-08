@@ -1,6 +1,8 @@
 import asyncio
 import json
+import logging
 import os
+import sys
 from datetime import datetime
 from typing import Generator
 
@@ -14,6 +16,14 @@ from langchain_core.messages import AIMessage, AIMessageChunk, HumanMessage
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from prompts import main_system_message_template, use_search_system_message_template
 from streamlit.components.v1 import html
+
+# Configure logging to output to stdout immediately
+logging.basicConfig(
+    stream=sys.stdout,
+    level=logging.INFO,  # Change to DEBUG if needed
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    force=True,  # Override any existing configurations
+)
 
 # Load environment variables
 load_dotenv()
@@ -57,7 +67,7 @@ def connect_to_vector_storage(collection_name: str) -> Chroma:
         collection_name=collection_name,
         embedding_function=embedding_function,
     )
-    print("Connected to Chroma vector storage")
+    logging.info("Connected to Chroma vector storage")
     return vector_storage
 
 
@@ -79,10 +89,10 @@ async def read_json_file(file_path: str) -> str:
         # Read the contents of the json file
         async with aiofiles.open(file_path, "r", encoding="utf-8") as file:
             json_data = await file.read()
-        print(f"File {file_path} read successfully")
+        logging.info(f"File {file_path} read successfully")
         return json_data
     except Exception as e:
-        print(f"Error while reading file {file_path}: {e}")
+        logging.error(f"Error while reading file {file_path}: {e}")
         # Return an error message to AI if the file could not be read
         return "An error occurred while loading data about one of the events!"
 
@@ -110,7 +120,7 @@ async def get_knowledge_from_vector_storage() -> str:
 
         # Get the response from the chat model
         response = (st.session_state.decisive_model.invoke(decisive_prompt)).content.strip()
-        print("Sent prompt to decide whether to search the vector storage")
+        logging.info("Sent prompt to decide whether to search the vector storage")
         # Add the decision to the search decisions memory
         st.session_state.search_decisions_memory += f"- {response}\n"
         # Parse the response from the chat model
@@ -129,11 +139,11 @@ async def get_knowledge_from_vector_storage() -> str:
             or response_json["results_shown"] < 0
             or (response_json["number_of_results"] != 0 and response_json["expression"] == "")
         ):
-            print("There was an error in decision-making!")
+            logging.error("There was an error in decision-making!")
             return "An error occurred while deciding to load the data!"
         # Check if the response indicates that no data is needed
         elif response_json["number_of_results"] == 0:
-            print("No data is needed to be loaded from the vector storage")
+            logging.info("No data is needed to be loaded from the vector storage")
             return "No data is needed."
         # Retrieve data from the vector storage
         else:
@@ -142,7 +152,7 @@ async def get_knowledge_from_vector_storage() -> str:
                 response_json["number_of_results"] = 14
 
             # Perform a similarity search in the vector storage
-            print("Searching for relevant data in the vector storage")
+            logging.info("Searching for relevant data in the vector storage")
             results = st.session_state.vector_storage.similarity_search_with_relevance_scores(
                 response_json["expression"], k=response_json["number_of_results"] + response_json["results_shown"]
             )
@@ -168,7 +178,7 @@ async def get_knowledge_from_vector_storage() -> str:
                 return full_knowledge
     except json.JSONDecodeError as e:
         # Return an error message to AI if there is an error while parsing the JSON response
-        print(f"Error while parsing JSON response: {e}")
+        logging.error(f"Error while parsing JSON response: {e}")
         return "An error occurred while deciding to load the data!"
 
 
@@ -191,7 +201,7 @@ def generate_response(user_query: str) -> Generator[AIMessageChunk, None, None]:
     knowledge = asyncio.run(get_knowledge_from_vector_storage())
 
     # Create a prompt for the chat model and get the response
-    print("Sending prompt to the chat model")
+    logging.info("Sending prompt to the chat model")
     prompt = st.session_state.dynamic_main_prompt.format_messages(
         today_date=datetime.now().strftime("%Y-%m-%d"), knowledge=knowledge, conversation=st.session_state.conversation
     )
@@ -247,7 +257,7 @@ def display_response(user_prompt: str) -> None:
 # Check if the application is initialized(application variables and objects need to be initialized only once)
 if "initialized" not in st.session_state:
     try:
-        print("Initializing application variables and objects")
+        logging.info("Initializing application variables and objects")
         # Set the flag to indicate that the application is initialized
         st.session_state.initialized = True
 
@@ -357,10 +367,10 @@ if not st.session_state.blocking_conversation:
         except Exception as e:
             # Check if the error is due to exceeding the context length of the chatbot
             if "context_length_exceeded" in str(e):
-                print("Context length exceeded")
+                logging.info("Context length exceeded")
                 st.error(f"Conversation limit reached. Please refresh the page to start a new conversation.")
             else:
-                print(f"An error occurred: {e}")
+                logging.error(f"An error occurred: {e}")
                 st.error(
                     f"An error occurred. Try refreshing the page to start a new conversation, or checking your interent connection."
                 )
