@@ -217,7 +217,7 @@ def generate_response(user_query: str) -> Generator[AIMessageChunk, None, None]:
                 )
             elif finish_reason != "stop":
                 st.warning(
-                    "The chatbot did not complete its speech, ommited some parts of the response or stopped unexpectedly. Try phrasing your request differently."
+                    "The chatbot did not complete its speech, omitted some parts of the response or stopped unexpectedly. Try phrasing your request differently."
                 )
         yield chunk
 
@@ -314,36 +314,38 @@ if "initialized" not in st.session_state:
         st.session_state.blocking_conversation = True
         st.stop()
 
+# Focus the input element
+html(
+    """
+        <style>
+            iframe[data-testid="stIFrame"]
+            {
+                display: none;
+            }
+
+            iframe[title="st.iframe"] {
+                display: none;
+            }
+            </style>
+            <div style="height: 0; overflow: hidden;">
+            <script>
+                setTimeout(() => {
+                    const chatInputBox = window.parent.document.querySelector('textarea');
+                    if (chatInputBox) {
+                        chatInputBox.focus();
+                    }
+                }, 100);  // Delay in milliseconds
+            </script>
+            </div>
+    """,
+    height=0,
+)
+
 # Display previous conversation
 display_conversation()
 
 # Check if the conversation is not blocked by an error
 if not st.session_state.blocking_conversation:
-    # Focus the input element
-    focus_js = """
-            <style>
-                iframe[data-testid="stIFrame"]
-                {
-                    display: none;
-                }
-                
-                iframe[title="st.iframe"] {
-                    display: none;
-                }
-                </style>
-                <div style="height: 0; overflow: hidden;">
-                <script>
-                    setTimeout(() => {
-                        const chatInputBox = window.parent.document.querySelector('textarea');
-                        if (chatInputBox) {
-                            chatInputBox.focus();
-                        }
-                    }, 100);  // Delay in milliseconds
-                </script>
-                </div>
-        """
-    html(focus_js, height=0)
-
     # Get user input from chat input
     user_prompt = st.chat_input("Ask a question about tech meetups in Poland")
 
