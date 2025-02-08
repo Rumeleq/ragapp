@@ -311,16 +311,28 @@ display_conversation()
 if not st.session_state.blocking_conversation:
     # Focus the input element
     focus_js = """
-            <script>
-                setTimeout(() => {
-                    const chatInputBox = window.parent.document.querySelector('textarea');
-                    if (chatInputBox) {
-                        chatInputBox.focus();
-                    }
-                }, 100);  // Delay in milliseconds
-            </script>
+            <style>
+                iframe[data-testid="stIFrame"]
+                {
+                    display: none;
+                }
+                
+                iframe[title="st.iframe"] {
+                    display: none;
+                }
+                </style>
+                <div style="height: 0; overflow: hidden;">
+                <script>
+                    setTimeout(() => {
+                        const chatInputBox = window.parent.document.querySelector('textarea');
+                        if (chatInputBox) {
+                            chatInputBox.focus();
+                        }
+                    }, 100);  // Delay in milliseconds
+                </script>
+                </div>
         """
-    html(focus_js)
+    html(focus_js, height=0)
 
     # Get user input from chat input
     user_prompt = st.chat_input("Ask a question about tech meetups in Poland")
