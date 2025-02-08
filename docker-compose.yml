@@ -31,6 +31,8 @@ services:
   frontend:
     build: ./frontend
     env_file: .env
+    tty: true
+    stdin_open: true
     ports:
       - "127.0.0.1:8501:8501"
     networks:
